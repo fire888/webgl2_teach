@@ -7,7 +7,11 @@ module.exports = {
 	entry: './src/index.js',
 	module: {
 		rules: [
-      { test: /\.txt$/, use: 'raw-loader' },
+      {
+          test: /\.(txt|vert|frag)$/,
+          use: 'raw-loader',
+
+      },
       { 
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
@@ -21,7 +25,7 @@ module.exports = {
             outputPath: 'imgs/'
           }
         }]
-      },			
+      },
       { test: /\.(obj|glb)$/,
         use: [{
           loader: 'file-loader',
@@ -30,10 +34,6 @@ module.exports = {
             outputPath: 'obj/'
           }
         }]
-      },
-      {
-        test: /\.(vert|frag)$/i,
-        use: 'raw-loader',
       },
 		]
 	},
