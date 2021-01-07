@@ -1,1 +1,5 @@
-import './lessons/03_textures/index.js'
+//import './lessons/01_start/index.js'
+//import './lessons/02_transform/index.js'
+//import './lessons/03_textures/index.js'
+//import './lessons/lesson05_matrix/index'
+import './lessons/lesson06_3d/index'
