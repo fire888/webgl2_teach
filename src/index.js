@@ -6,4 +6,5 @@
 //import './lessons/lesson07_perspective/'
 //import './lessons/lesson08_lookAt/'
 //import './lessons/lesson09_dirLight/'
-import './lessons/lesson10_pointLight/'
+//import './lessons/lesson10_pointLight/'
+import './lessons/lesson12_lathe/'
