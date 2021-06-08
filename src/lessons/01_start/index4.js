@@ -2,14 +2,7 @@ import vertexShaderSource from './first.vert'
 import fragmentShaderSource from './first.frag'
 
 
-const canvas = document.createElement('canvas')
-canvas.width = 800
-canvas.height = 800
-document.body.appendChild(canvas)
-
-
-var gl = canvas.getContext("webgl2")
-
+/** PREPARE PROGRAM **********************/
 
 function createShader(gl, type, source) {
     console.log(gl, 't:', type, 's:', source)
@@ -42,103 +35,62 @@ function createProgram(gl, vertexShader, fragmentShader) {
 }
 
 
-
+const canvas = document.createElement('canvas')
+canvas.width = 800
+canvas.height = 800
+document.body.appendChild(canvas)
+var gl = canvas.getContext("webgl2")
 var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
 var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 var program = createProgram(gl, vertexShader, fragmentShader);
 
 
+/** CREATE AND FILL BUFFERS ************************/
 
+// look up where the vertex data needs to go.
+var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 
-
+// Create a buffer and put three 2d clip space points in it
 var positionBuffer = gl.createBuffer();
+
+// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
 var positions = [
     0, 0,
     0, 0.5,
     0.7, 0,
-
-    -0.5, -0.5,
-    -0.5, 0,
-    0, 0,
 ];
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
 
+/** RENDER ***********************************/
 
-var vao = gl.createVertexArray();
-gl.bindVertexArray(vao);
+// Tell WebGL how to convert from clip space to pixels
+gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+// Clear the canvas
+gl.clearColor(0, 0, 0, 255);
+gl.clear(gl.COLOR_BUFFER_BIT);
 
+// Tell it to use our program (pair of shaders)
+gl.useProgram(program);
 
-
-
-var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+// Turn on the attribute
 gl.enableVertexAttribArray(positionAttributeLocation);
+// Bind the position buffer.
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-
-
-
-
+// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
 var size = 2;          // 2 components per iteration
 var type = gl.FLOAT;   // the data is 32bit floats
 var normalize = false; // don't normalize the data
 var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
 var offset = 0;        // start at the beginning of the buffer
-gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
+gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
-
-
-
-gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-gl.clearColor(1, 1, 1, 1);
-gl.clear(gl.COLOR_BUFFER_BIT);
-gl.useProgram(program);
-
-
-
-function setTriangle (gl, x, y) {
-    // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect
-    // whatever buffer is bound to the `ARRAY_BUFFER` bind point
-    // but so far we only have one buffer. If we had more than one
-    // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
-    const arr = new Float32Array([
-        x, y,
-        x + 0.1, y,
-        x + 0.1, y + 0.1,
-    ])
-
-    gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW)
-}
-
-
-var colorLocation = gl.getUniformLocation(program, "u_color");
-
-for (var ii = 0; ii < 50; ++ii) {
-    // Setup a random rectangle
-    setTriangle(gl, Math.random(), Math.random());
-
-    // Set a random color.
-    gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
-
-    // Draw the rectangle.
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    var count = 3;
-    gl.drawArrays(primitiveType, offset, count);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// draw
+var primitiveType = gl.TRIANGLES;
+var offset = 0;
+var count = 3;
+gl.drawArrays(primitiveType, offset, count);
