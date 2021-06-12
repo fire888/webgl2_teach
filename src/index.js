@@ -5,8 +5,9 @@
 
 
 //import './lessons/02_transform/index.js'
-import './lessons/02_transform/index2.js'
+//import './lessons/02_transform/index2.js'
 
+import './lessons/02_02_customStar/'
 
 
 //import './lessons/03_textures/index.js'
