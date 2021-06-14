@@ -7,11 +7,14 @@
 //import './lessons/02_transform/index.js'
 //import './lessons/02_transform/index2.js'
 
-import './lessons/02_02_customStar/'
-
+//import './lessons/02_02_customStar/'
+import './lessons/02_03_transform/'
 
 //import './lessons/03_textures/index.js'
 //import './lessons/lesson05_matrix/index'
+//import './lessons/lesson05_matrix/index2'
+
+
 //import './lessons/lesson06_3d/index'
 //import './lessons/lesson07_perspective/'
 //import './lessons/lesson08_lookAt/'
