@@ -103,12 +103,74 @@ function prepareGl() {
 }
 
 
+function createGeom({
+    width = 0.2,
+    h1 = 0.2,
+    hs= 0.01,
+    lengthStep = 0.02,
+    lengthTop = 0.2,
+    lengthBottom = 0.2,
+    countStairs = 10
+}) {
+    function createPoints() {
+        const arr = []
+        arr.push([
+            0, 0, 0,
+            lengthBottom, 0, 0,
+            lengthBottom, h1, 0,
+            0, h1, 0,
+        ])
 
-const pos = new Float32Array([
-    -.2, 0, 0,
-    .2, 0, 0,
-    -.2, .2, 0,
-])
+        let sCurrentX = lengthBottom
+        let sCurrentY = h1
+        for (let i = 0; i < countStairs; ++i) {
+            sCurrentY += hs
+            arr.push([
+                sCurrentX, 0, 0,
+                sCurrentX + lengthStep, 0, 0,
+                sCurrentX + lengthStep, sCurrentY, 0,
+                sCurrentX, sCurrentY, 0,
+            ])
+            sCurrentX += lengthStep
+        }
+
+        arr.push([
+            sCurrentX, 0, 0,
+            sCurrentX + lengthTop, 0, 0,
+            sCurrentX + lengthTop, sCurrentY, 0,
+            sCurrentX, sCurrentY, 0,
+        ])
+        return arr
+    }
+
+    function createPolygons(points) {
+        const arr = []
+        for (let i = 0; i < points.length; ++i) {
+            const p = points[i]
+            arr.push(
+                p[0], p[1], p[2],
+                p[3], p[4], p[5],
+                p[6], p[7], p[8],
+
+                p[6], p[7], p[8],
+                p[9], p[10], p[11],
+                p[0], p[1], p[2],
+            )
+        }
+        return arr
+    }
+
+    const points = createPoints()
+    const poligons = createPolygons(points)
+    return new Float32Array(poligons)
+}
+
+// const pos = new Float32Array([
+//     -.2, 0, 0,
+//     .2, 0, 0,
+//     -.2, .2, 0,
+// ])
+const pos = createGeom({})
 const glU = prepareGl()
 const buffer = glU.createBuffer(pos)
 const {
