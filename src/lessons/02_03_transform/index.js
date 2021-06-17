@@ -27,7 +27,7 @@ void main() {
 
 /** GL *************************************************************/
 
-const createGl = () => {
+function createGl () {
     function createCanvasGl () {
         const canvas = document.createElement('canvas')
         const s = Math.min(window.innerWidth, window.innerHeight)
@@ -37,7 +37,7 @@ const createGl = () => {
         document.body.appendChild(canvas)
         return canvas.getContext('webgl2')
     }
-    
+
     function createShader(gl, type, shaderSrc) {
         const shader = gl.createShader(type)
         gl.shaderSource(shader, shaderSrc)
@@ -86,15 +86,16 @@ const createGl = () => {
         return buffer
     }
 
-    function clearCanvas() {
+
+    function clearCanvas(color) {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clearColor(0, 0, 0, 1);
+        gl.clearColor(...color)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
+
     function renderItem(data) {
         const {
-
             program,
             posAttribPointer,
             buffer,
@@ -106,17 +107,17 @@ const createGl = () => {
         } = data
 
         gl.useProgram(program)
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.uniformMatrix3fv(matrixUniformLocation, false, matrixResult)
         gl.uniform4f(colorUniformLocation, ...color)
         gl.enableVertexAttribArray(posAttribPointer)
         gl.vertexAttribPointer(posAttribPointer, 2, gl.FLOAT, false, 0, 0)
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.drawArrays(gl.TRIANGLES, 0, array32.length)
     }
-    
-    
+
+
     let gl = createCanvasGl()
-    
+
     return {
         createShader,
         prepareProgram,
@@ -133,8 +134,9 @@ const createGl = () => {
 function createWheel(data) {
     const { qualityNum, r, width, heightTooth } = data
 
-    const bevel1 = r + 0.01
-    const bevel2 = r + heightTooth + 0.01
+    const bevel1 = r + Math.max(heightTooth / 10, 0.05)
+    const bevel2 = r + Math.max(heightTooth + (heightTooth / 10), 0.05)
+    const bevel0 = r - width - Math.max(heightTooth / 10, 0.05)
 
     function createCoords() {
         const arrTop = []
@@ -142,57 +144,91 @@ function createWheel(data) {
         const arrTooth = []
         const arrBevel1 = []
         const arrBevel2 = []
+        const arrBevel0 = []
 
         const addToLen = Math.PI * 2 / qualityNum
         let currentLen = 0
 
+        /**
+         *         *------------* arrBevel2
+         *         |\          /|
+         *         | *--------* | arrTooth
+         *         | |        | |
+         *     ----* |        | *------- arrBevel1
+         *          \|        |/
+         *     *-----*        *--------* arrTop
+         *
+         *     *-----*--------*--------* arrBottom
+         *
+         *     *-----*--------*--------* arrBevel0
+         */
+
         for (let i = 0; i < qualityNum; ++i) {
+            // add middle point
+            const topPoint = [Math.sin(currentLen) * r, Math.cos(currentLen) * r]
+            arrTop.push(topPoint)
+
+            // add inner point
+            const bottomPoint = [Math.sin(currentLen) * (r - width), Math.cos(currentLen) * (r - width)]
+            arrBottom.push(bottomPoint)
+
+            // add spike point
+            const toothPoint = [Math.sin(currentLen) * (r + heightTooth), Math.cos(currentLen) * (r + heightTooth)]
+            arrTooth.push(toothPoint)
+
+
+            // addInner bevelPoint
+            const innbecPoint = [Math.sin(currentLen) * bevel0, Math.cos(currentLen) * bevel0]
+            arrBevel0.push(innbecPoint)
+
 
             const bevelPoint = []
             const bevel2Point = []
+
+            const bevelWidth = addToLen / 2.5
             if (i % 2 === 0) {
-                bevelPoint.push(Math.sin(currentLen - 0.005) * bevel1, Math.cos(currentLen - 0.005) * bevel1)
-                bevel2Point.push(Math.sin(currentLen - 0.005) * bevel2, Math.cos(currentLen - 0.005) * bevel2)
+                // add spike offset left bottom
+                bevelPoint.push(Math.sin(currentLen - bevelWidth) * bevel1, Math.cos(currentLen - bevelWidth) * bevel1)
+                // add spike offset left top
+                bevel2Point.push(Math.sin(currentLen - bevelWidth) * bevel2, Math.cos(currentLen - bevelWidth) * bevel2)
             }
             else {
-                bevelPoint.push(Math.sin(currentLen + 0.005) * bevel1, Math.cos(currentLen + 0.005) * bevel1)
-                bevel2Point.push(Math.sin(currentLen - 0.005) * bevel2, Math.cos(currentLen - 0.005) * bevel2)
+                // add spike offset right bottom
+                bevelPoint.push(Math.sin(currentLen + bevelWidth) * bevel1, Math.cos(currentLen + bevelWidth) * bevel1)
+                // add spike offset right top
+                bevel2Point.push(Math.sin(currentLen + bevelWidth) * bevel2, Math.cos(currentLen + bevelWidth) * bevel2)
             }
             arrBevel1.push(bevelPoint)
             arrBevel2.push(bevel2Point)
 
 
-            const topPoint = [Math.sin(currentLen) * r, Math.cos(currentLen) * r]
-            arrTop.push(topPoint)
-
-            const bottomPoint = [Math.sin(currentLen) * (r - width), Math.cos(currentLen) * (r - width)]
-            arrBottom.push(bottomPoint)
-
-            const toothPoint = [Math.sin(currentLen) * (r + heightTooth), Math.cos(currentLen) * (r + heightTooth)]
-            arrTooth.push(toothPoint)
-
             currentLen += addToLen
         }
-        return { arrTop, arrBottom, arrTooth, arrBevel1, arrBevel2 }
+        return [ arrTop, arrBottom, arrTooth, arrBevel1, arrBevel2, arrBevel0 ]
     }
 
 
+    function createPolygonsCoords(top, bottom, tooth, bevel1, bevel2, bevel0) {
+        const body = []
+        const bevel = []
+        for (let i = 0; i < top.length; i += 1) {
 
-    function createPolygonsCoords(coordsTop, coordsBottom, coordsTooth) {
-        const arr = []
-        const arrBevel = []
-        for (let i = 0; i < coordsTop.length; i += 1) {
-            if (!coordsTop[i + 1]) {
-                arr.push(...createPolygon(coordsTop[i], coordsTop[0], coordsBottom[i], coordsBottom[0]))
-                continue;
+            const pI = top[i + 1] ? i + 1 : 0
+            const mI = top[i - 1] ? i - 1 : top.length - 1
+
+            body.push(...createPolygon(top[i], top[pI], bottom[i], bottom[pI]))
+            bevel.push(...createPolygon(bottom[i], bottom[pI], bevel0[i], bevel0[pI]))
+
+            if (i % 2 === 0) {
+                body.push(...createPolygon(tooth[i], tooth[pI], top[i], top[pI]))
+                bevel.push(...createPolygon(bevel2[i], bevel2[pI], tooth[i], tooth[pI]))
+                bevel.push(...createPolygon(bevel1[mI], bevel1[i], top[mI], top[i]))
+                bevel.push(...createPolygon(tooth[pI], bevel2[pI], top[pI], bevel1[pI]))
+                bevel.push(...createPolygon(tooth[i], bevel2[i], top[i], bevel1[i]))
             }
-
-            arr.push(...createPolygon(coordsTop[i], coordsTop[i + 1], coordsBottom[i], coordsBottom[i + 1]))
-            if (i % 2 === 0) arr.push(...createPolygon(coordsTooth[i], coordsTooth[i + 1], coordsTop[i], coordsTop[i + 1]))
         }
-        return arr
+        return { body, bevel }
     }
-
 
 
     function createPolygon(c1, c2, c3, c4) {
@@ -200,9 +236,7 @@ function createWheel(data) {
             [  c1[0], c1[1],    c2[0], c2[1],    c3[0], c3[1]  ],
             [  c3[0], c3[1],    c2[0], c2[1],    c4[0], c4[1]  ],
         ]
-
     }
-
 
 
     function prepareArray(polygons) {
@@ -216,10 +250,13 @@ function createWheel(data) {
     }
 
 
-    const { arrTop, arrBottom, arrTooth } = createCoords()
-    const polygonsCoords = createPolygonsCoords(arrTop, arrBottom, arrTooth)
-    const preparedArr = prepareArray(polygonsCoords)
-    return new Float32Array(preparedArr)
+    const { body, bevel } = createPolygonsCoords(...createCoords())
+    const bodyPrepared = prepareArray(body)
+    const bevelPrepared = prepareArray(bevel)
+    return {
+        body: new Float32Array(bodyPrepared),
+        bevel: new Float32Array(bevelPrepared)
+    }
 }
 
 
@@ -230,78 +267,57 @@ function createWheel(data) {
 
 
 function main () {
-    const dataWheels = [
-        {
-            geom: {
-                qualityNum: Math.floor(Math.random() * 30) * 4,
-                r: Math.random(),
-                width: Math.random() * 0.8,
-                heightTooth: Math.random(),
-            },
-            offset: [.3, .2],
-            rotateSpeed: .3,
-            body: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            },
-            border: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            }
-        },
-        {
-            geom: {
-                qualityNum: Math.floor(Math.random() * 30) * 4,
-                r: Math.random(),
-                width: Math.random() * 0.8,
-                heightTooth: Math.random(),
-            },
-            offset: [-.3, .2],
-            rotateSpeed: -.3,
-            body: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            },
-            border: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            }
-        },
-        {
-            geom: {
-                qualityNum: Math.floor(Math.random() * 30) * 4,
-                r: Math.random(),
-                width: Math.random() * 0.8,
-                heightTooth: Math.random(),
-            },
-            offset: [.3, -.2],
-            rotateSpeed: .6,
-            body: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            },
-            border: {
-                arr32: null,
-                buffer: null,
-                color: colorRandom()
-            }
-        },
-    ]
-
-    const glU = createGl()
-
-    for (let i = 0; i < dataWheels.length; ++i) {
-        const array32 = createWheel(dataWheels[i].geom)
-        const buffer = glU.createBuffer(array32)
-        dataWheels[i].body.array32 = array32
-        dataWheels[i].body.buffer = buffer
+    const colors = {
+        body: colorRandom(),
+        border: colorRandom(),
+        back: colorRandom(),
     }
 
+    //console.log('' + JSON.stringify(colors) + ',')
+
+
+    function prepareWheelsBuffers(glU) {
+        const countWheels = 40
+        const dataWheels = []
+
+        for (let i = 0; i < countWheels; ++i) {
+            const r = Math.random() / 2
+
+            dataWheels.push({
+                geomParams: {
+                    r,
+                    qualityNum: Math.floor(r * 30) * 4 + 12,
+                    width: r - (Math.random() * (r / 2)),
+                    heightTooth: Math.max( r / 2, Math.random() * r),
+                },
+                offset: [Math.random() * 4 - 2, Math.random() * 2 - 1],
+                rotateSpeed: Math.random(),
+                body: {
+                    arr32: null,
+                    buffer: null,
+                },
+                border: {
+                    arr32: null,
+                    buffer: null,
+                }
+            })
+        }
+
+        for (let i = 0; i < countWheels; ++i) {
+            const { body, bevel } = createWheel(dataWheels[i].geomParams)
+            dataWheels[i].body.array32 = body
+            dataWheels[i].body.buffer = glU.createBuffer(body)
+
+            dataWheels[i].border.array32 = bevel
+            dataWheels[i].border.buffer = glU.createBuffer(bevel)
+        }
+        return dataWheels
+    }
+
+
+
+    const glU = createGl()
+    const dataWheels = prepareWheelsBuffers(glU)
     const {
         program,
         posAttribPointer,
@@ -310,35 +326,54 @@ function main () {
     } = glU.prepareProgram(vShaderSrc, fShaderSrc)
 
 
-
-    function draw(d) {
-        glU.clearCanvas()
-
+    function draw(d, colors) {
+        glU.clearCanvas(colors.back)
         for (let i = 0; i < dataWheels.length; ++i) {
-            const {offset, rotateSpeed, body } = dataWheels[i]
+            const { offset, rotateSpeed, body, border } = dataWheels[i]
 
-            const mTranslate = m3.translate(offset[0], offset[1])
+            const x = (offset[0] + (d * rotateSpeed)) % 4 - 2
+            const mTranslate = m3.translate(x, offset[1])
             const mRotate = m3.rotate(d * rotateSpeed)
             const matrixResult = m3.multiply(mTranslate, mRotate)
 
-            glU.renderItem({
-                buffer: body.buffer,
-                array32: body.array32,
-                color: body.color,
-                colorUniformLocation,
-                matrixUniformLocation,
-                matrixResult,
-                posAttribPointer,
-                program,
-            })
+            {
+                const { buffer, array32 } = body
+                glU.renderItem({
+                    buffer,
+                    array32,
+                    color: colors.body,
+                    colorUniformLocation,
+                    matrixUniformLocation,
+                    matrixResult,
+                    posAttribPointer,
+                    program,
+                })
+            }
+
+            {
+                const { buffer, array32 } = border
+                glU.renderItem({
+                    buffer,
+                    array32,
+                    color: colors.border,
+                    colorUniformLocation,
+                    matrixUniformLocation,
+                    matrixResult,
+                    posAttribPointer,
+                    program,
+                })
+            }
         }
     }
 
-
+    let countForColor = 0
+    let currentColorIndex = 0
     let d = 0
     const animate = () => {
-        d += 0.01
-        draw(d)
+        countForColor = ++countForColor > 200 ? (++currentColorIndex && 0) : countForColor
+        currentColorIndex === arrColors.length && (currentColorIndex = 0)
+
+        draw(d += 0.01, arrColors[currentColorIndex])
         requestAnimationFrame(animate)
     }
     animate()
@@ -375,6 +410,18 @@ const m3 = {
         ]
     },
 }
+
+const arrColors = [
+    {"body":[0.0552550786049717,0.34500187146127503,0.5156481053974176,1],"border":[0.3239710995624303,0.0034800572507012184,0.06726530343383663,1],"back":[0.5985813778260423,0.7769177327295236,0.9989627154511642,1]},
+    {"body":[0.9551248017665492,0.30286389616085474,0.12597615700513898,1],"border":[0.5358935466645331,0.046853379785553484,0.06787342749637149,1],"back":[0.13153043166179645,0.339486288902378,0.30074789921948386,1]},
+    {"body":[0.9371522402105268,0.509915289220751,0.06044130125128189,1],"border":[0.05172973908831424,0.24182775601969264,0.515555584419747,1],"back":[0.9078767702337458,0.7755196900574175,0.11171617474531681,1]},
+    {"body":[0.5113371383829524,0.4401723957131185,0.36290880231206746,1],"border":[0.7426018204196585,0.8742653416467996,0.30941440857900093,1],"back":[0.3730420840546871,0.07019937117543362,0.13307516862943203,1]},
+    {"body":[0.9497129278309699,0.57920147158971,0.17997506701071475,1],"border":[0.9243790316105784,0.32031828943356166,0.13742895309894676,1],"back":[0.9872750703086524,0.12397274383015366,0.9332901304274586,1]},
+    {"body":[0.05848484736300019,0.07302997147815526,0.11362516943392587,1],"border":[0.8450760654859399,0.0746831700059869,0.15274941004912868,1],"back":[0.8352540591001067,0.7284317355140064,0.07744532659664793,1]},
+    {"body":[0.1796398836150539,0.04205935360045454,0.3543121207269919,1],"border":[0.29841460105053974,0.9573603737031708,0.443169806157534,1],"back":[0.8345352791991079,0.0010281375520699854,0.08178874901030464,1]},
+    {"body":[0.18469878673592977,0.32547515909402036,0.3904721885628415,1],"border":[0.11971487757194499,0.03814368908143795,0.08039283936296471,1],"back":[0.644188609787173,0.8042291987740497,0.18634513334127467,1]},
+    {"body":[0.34957558240311326,0.404767076275784,0.7375987182317927,1],"border":[0.013142924786148757,0.020616022304864146,0.39702062482209777,1],"back":[0.4578502279795198,0.6664362820103078,0.7553094769639628,1]},
+]
 
 main()
 

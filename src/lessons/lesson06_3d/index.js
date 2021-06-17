@@ -10,7 +10,14 @@ import { m4 } from '../../helpers/m4'
 function main() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
-    var canvas = document.querySelector("#canvas");
+    document.body.style.textAlign = 'center'
+    document.body.style.overflow = 'hidden'
+    const canvas = document.createElement('canvas')
+    const s = Math.min(window.innerWidth, window.innerHeight)
+    canvas.width = canvas.height = s
+    canvas.style.border = '2px solid #000000'
+    canvas.style.boxSizing = 'border-box'
+    document.body.appendChild(canvas)
     var gl = canvas.getContext("webgl2");
     if (!gl) {
         return;
