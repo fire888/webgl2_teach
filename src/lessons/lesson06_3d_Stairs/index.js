@@ -137,16 +137,17 @@ function prepareGl() {
 function createGeom({
     width = 0.2,
     h1 = 0.2,
-    hs= 0.01,
-    lengthStep = 0.02,
+    hs= 0.04,
+    lengthStep = 0.04,
     lengthTop = 0.2,
     lengthBottom = 0.2,
     countStairs = 10
 } = null) {
-    function createPoints() {
-        const arrColors = []
-        const arrGeom = []
 
+    function createPoints() {
+        const arrGeom = []
+        const arrGeomWT = []
+        const arrGeomWG = []
 
         arrGeom.push([
             0, 0, 0,
@@ -154,7 +155,18 @@ function createGeom({
             lengthBottom, h1, 0,
             0, h1, 0,
         ])
-
+        arrGeomWT.push([
+            0, 0, 0,
+            0, h1, 0,
+            0, h1, width,
+            0, 0, width,
+        ])
+        arrGeomWG.push([
+            0, h1, 0,
+            lengthBottom, h1, 0,
+            lengthBottom, h1, width,
+            0, h1, width,
+        ])
 
         let sCurrentX = lengthBottom
         let sCurrentY = h1
@@ -166,9 +178,20 @@ function createGeom({
                 sCurrentX + lengthStep, sCurrentY, 0,
                 sCurrentX, sCurrentY, 0,
             ])
+            arrGeomWT.push([
+                sCurrentX, sCurrentY - hs, 0,
+                sCurrentX, sCurrentY, 0,
+                sCurrentX, sCurrentY, width,
+                sCurrentX, sCurrentY - hs, width,
+            ])
+            arrGeomWG.push([
+                sCurrentX, sCurrentY, 0,
+                sCurrentX + lengthStep, sCurrentY, 0,
+                sCurrentX + lengthStep, sCurrentY, width,
+                sCurrentX, sCurrentY, width,
+            ])
             sCurrentX += lengthStep
         }
-
 
         arrGeom.push([
             sCurrentX, 0, 0,
@@ -176,43 +199,51 @@ function createGeom({
             sCurrentX + lengthTop, sCurrentY, 0,
             sCurrentX, sCurrentY, 0,
         ])
+        arrGeomWG.push([
+            sCurrentX, sCurrentY, 0,
+            sCurrentX + lengthTop, sCurrentY, 0,
+            sCurrentX + lengthTop, sCurrentY, width,
+            sCurrentX, sCurrentY, width,
+        ])
 
-
-        for (let i = 0; i < arrGeom.length; i += 3) {
-            arrColors.push(0, 1, 0)
-        }
-        return { arrGeom, arrColors }
+        return { arrGeom, arrGeomWT, arrGeomWG }
     }
 
-    function createPolygons({ arrGeom, arrColors }) {
+    function createPolygons({ arrGeom, arrGeomWT, arrGeomWG }) {
         const arr = []
         const colors = []
-        for (let i = 0; i < arrGeom.length; ++i) {
-            const p = arrGeom[i]
-            arr.push(
-                p[0], p[1], p[2],
-                p[3], p[4], p[5],
-                p[6], p[7], p[8],
 
-                p[6], p[7], p[8],
-                p[9], p[10], p[11],
-                p[0], p[1], p[2],
-            )
-            colors.push(
-                0, 1, 0,
-                0, 1, 0,
-                0, 1, 0,
+        fillArr(arr, arrGeom, colors, [0, 1, 0])
+        fillArr(arr, arrGeomWT, colors, [1, 1, 0])
+        fillArr(arr, arrGeomWG, colors, [1, 1, 1])
 
-                0, 1, 0,
-                0, 1, 0,
-                0, 1, 0,
-            )
-        }
         return [ arr, colors ]
     }
+    
+    function fillArr(arr, geom, colors, color) {
+        const indStart = arr.length
+        for (let i = 0; i < geom.length; ++i) {
+            arr.push(...createPolygon(geom[i]))
+        }
+        for (let i = indStart; i < arr.length; i += 3 ) {
+            colors.push(...color)
+        }
+    }
 
-    const { arrGeom, arrColors } = createPoints()
-    const [ polygons, colors ] = createPolygons({ arrGeom, arrColors })
+    function createPolygon(p) {
+        return [
+            p[0], p[1], p[2],
+            p[3], p[4], p[5],
+            p[6], p[7], p[8],
+
+            p[6], p[7], p[8],
+            p[9], p[10], p[11],
+            p[0], p[1], p[2],
+        ]
+    }
+
+    const { arrGeom, arrGeomWT, arrGeomWG } = createPoints()
+    const [ polygons, colors ] = createPolygons({ arrGeom, arrGeomWT, arrGeomWG })
     return {
         polygons: new Float32Array(polygons),
         colors: new Float32Array(colors)
@@ -220,13 +251,80 @@ function createGeom({
 }
 
 
+
+
+
+
+
+
 /** MAIN ******************************************************/
 
+const arrDataStairs = [
+    {
+        dataGeom: {
+            width: 0.8,
+            h1: 0.2,
+            hs: 0.04,
+            lengthStep: 0.04,
+            lengthTop: 0.2,
+            lengthBottom: 0.2,
+            countStairs: 10,
+        },
+        transform: {
+            move: [.1, .5, 0],
+        },
+        // gl: {
+        //     a_geom: {
+        //         posAttrLoc: null,
+        //         buffer: null,
+        //         len: null,
+        //     },
+        //     a_color:{
+        //         colorAttrLoc: null,
+        //         buffer: null,
+        //         len: null,
+        //     },
+        //     u_matrix: {
+        //         matrixUniformLoc: null,
+        //     },
+        // },
+    },
+    {
+        dataGeom: {
+            width: 0.2,
+            h1: 0.2,
+            hs: 0.08,
+            lengthStep: 0.04,
+            lengthBottom: 0.1,
+            lengthTop: 0.1,
+            countStairs: 15,
+        },
+        transform: {
+            move: [-.5, .5, 0],
+        },
+        // gl: {
+        //     a_geom: {
+        //         posAttrLoc: null,
+        //         buffer: null,
+        //         len: null,
+        //     },
+        //     a_color:{
+        //         colorAttrLoc: null,
+        //         buffer: null,
+        //         len: null,
+        //     },
+        //     u_matrix: {
+        //         matrixUniformLoc: null,
+        //     },
+        // },
+    },
+]
+
 function main() {
-    const { polygons, colors } = createGeom({})
     const glU = prepareGl()
-    const bufferPolygons = glU.createBuffer(polygons)
-    const bufferColors = glU.createBuffer(colors)
+
+    glU.clearCanvas()
+
     const {
         program,
         posAttrLoc,
@@ -234,25 +332,33 @@ function main() {
         matrixUniformLoc,
     } = glU.prepareProgram(vShSrc, fShSrc)
 
-    const yRotMatrix = m4.yRotation(1)
-    const xRotMatrix = m4.xRotation(1)
-    const result = m4.multiply(yRotMatrix, xRotMatrix)
 
-    glU.clearCanvas()
-    glU.render({
-        program,
+    for (let i = 0; i < arrDataStairs.length; ++i) {
+        const { polygons, colors } = createGeom(arrDataStairs[i].dataGeom)
+        const bufferPolygons = glU.createBuffer(polygons)
+        const bufferColors = glU.createBuffer(colors)
 
-        posAttrLoc,
-        bufferPolygons,
+        const yRotMatrix = m4.yRotation(1)
+        const xRotMatrix = m4.xRotation(1)
+        let result = m4.multiply(yRotMatrix, xRotMatrix)
+        const trMatr = m4.translate(...arrDataStairs[i].transform.move)
+        result = m4.multiply(result, trMatr)
 
-        colorAttrLoc,
-        bufferColors,
+        glU.render({
+            program,
 
-        matrixUniformLoc,
-        matrix: result,
+            posAttrLoc,
+            bufferPolygons,
 
-        bufferLength: polygons.length,
-    })
+            colorAttrLoc,
+            bufferColors,
+
+            matrixUniformLoc,
+            matrix: result,
+
+            bufferLength: polygons.length,
+        })
+    }
 }
 
 
