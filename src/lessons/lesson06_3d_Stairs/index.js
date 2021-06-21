@@ -1,21 +1,31 @@
-const vShSrc =
-`#version 300 es
 
-in vec3 a_position;
 
-void main() {
-    gl_Position = vec4(a_position, 1);
-}`
+/** SHADERS *******************************************************/
 
-const fShSrc =
-`#version 300 es
+const vShSrc = `
+attribute vec4 a_position;
+attribute vec4 a_color;
 
-precision highp float;
-out vec4 color;
+uniform mat4 u_matrix;
+
+varying vec4 v_color;
 
 void main() {
-    color = vec4(1., 0., 0., 1.);   
+    v_color = a_color;
+    gl_Position = a_position * u_matrix;
 }`
+
+const fShSrc = `
+precision mediump float;
+
+varying vec4 v_color;
+
+void main() {
+    gl_FragColor = v_color;   
+}`
+
+
+/** GL *************************************************************/
 
 function prepareGl() {
     function createGl() {
@@ -67,7 +77,14 @@ function prepareGl() {
         const fSh = createShader(gl, gl.FRAGMENT_SHADER, fShSrc)
         const program = createProgram(gl, vSh, fSh)
         const posAttrLoc = gl.getAttribLocation(program, 'a_position')
-        return { program, posAttrLoc }
+        const colorAttrLoc = gl.getAttribLocation(program, 'a_color')
+        const matrixUniformLoc = gl.getUniformLocation(program, 'u_matrix')
+        return {
+            program,
+            posAttrLoc,
+            colorAttrLoc,
+            matrixUniformLoc,
+        }
     }
 
 
@@ -81,13 +98,25 @@ function prepareGl() {
     function render({
         program,
         posAttrLoc,
-        buffer,
+        bufferPolygons,
+        colorAttrLoc,
+        bufferColors,
         bufferLength,
+        matrixUniformLoc,
+        matrix,
     }) {
+
         gl.useProgram(program)
+        gl.uniformMatrix4fv(matrixUniformLoc, false, matrix)
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors)
+        gl.enableVertexAttribArray(colorAttrLoc)
+        gl.vertexAttribPointer(colorAttrLoc, 3, gl.FLOAT, false, 0, 0)
+        gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferPolygons)
         gl.enableVertexAttribArray(posAttrLoc)
         gl.vertexAttribPointer(posAttrLoc, 3, gl.FLOAT, false, 0, 0)
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
     }
 
@@ -103,6 +132,8 @@ function prepareGl() {
 }
 
 
+/** GEOMETRY ***************************************************/
+
 function createGeom({
     width = 0.2,
     h1 = 0.2,
@@ -111,21 +142,25 @@ function createGeom({
     lengthTop = 0.2,
     lengthBottom = 0.2,
     countStairs = 10
-}) {
+} = null) {
     function createPoints() {
-        const arr = []
-        arr.push([
+        const arrColors = []
+        const arrGeom = []
+
+
+        arrGeom.push([
             0, 0, 0,
             lengthBottom, 0, 0,
             lengthBottom, h1, 0,
             0, h1, 0,
         ])
 
+
         let sCurrentX = lengthBottom
         let sCurrentY = h1
         for (let i = 0; i < countStairs; ++i) {
             sCurrentY += hs
-            arr.push([
+            arrGeom.push([
                 sCurrentX, 0, 0,
                 sCurrentX + lengthStep, 0, 0,
                 sCurrentX + lengthStep, sCurrentY, 0,
@@ -134,19 +169,26 @@ function createGeom({
             sCurrentX += lengthStep
         }
 
-        arr.push([
+
+        arrGeom.push([
             sCurrentX, 0, 0,
             sCurrentX + lengthTop, 0, 0,
             sCurrentX + lengthTop, sCurrentY, 0,
             sCurrentX, sCurrentY, 0,
         ])
-        return arr
+
+
+        for (let i = 0; i < arrGeom.length; i += 3) {
+            arrColors.push(0, 1, 0)
+        }
+        return { arrGeom, arrColors }
     }
 
-    function createPolygons(points) {
+    function createPolygons({ arrGeom, arrColors }) {
         const arr = []
-        for (let i = 0; i < points.length; ++i) {
-            const p = points[i]
+        const colors = []
+        for (let i = 0; i < arrGeom.length; ++i) {
+            const p = arrGeom[i]
             arr.push(
                 p[0], p[1], p[2],
                 p[3], p[4], p[5],
@@ -156,33 +198,149 @@ function createGeom({
                 p[9], p[10], p[11],
                 p[0], p[1], p[2],
             )
+            colors.push(
+                0, 1, 0,
+                0, 1, 0,
+                0, 1, 0,
+
+                0, 1, 0,
+                0, 1, 0,
+                0, 1, 0,
+            )
         }
-        return arr
+        return [ arr, colors ]
     }
 
-    const points = createPoints()
-    const poligons = createPolygons(points)
-    return new Float32Array(poligons)
+    const { arrGeom, arrColors } = createPoints()
+    const [ polygons, colors ] = createPolygons({ arrGeom, arrColors })
+    return {
+        polygons: new Float32Array(polygons),
+        colors: new Float32Array(colors)
+    }
 }
 
-// const pos = new Float32Array([
-//     -.2, 0, 0,
-//     .2, 0, 0,
-//     -.2, .2, 0,
-// ])
-const pos = createGeom({})
-const glU = prepareGl()
-const buffer = glU.createBuffer(pos)
-const {
-    program,
-    posAttrLoc,
-} = glU.prepareProgram(vShSrc, fShSrc)
+
+/** MAIN ******************************************************/
+
+function main() {
+    const { polygons, colors } = createGeom({})
+    const glU = prepareGl()
+    const bufferPolygons = glU.createBuffer(polygons)
+    const bufferColors = glU.createBuffer(colors)
+    const {
+        program,
+        posAttrLoc,
+        colorAttrLoc,
+        matrixUniformLoc,
+    } = glU.prepareProgram(vShSrc, fShSrc)
+
+    const yRotMatrix = m4.yRotation(1)
+    const xRotMatrix = m4.xRotation(1)
+    const result = m4.multiply(yRotMatrix, xRotMatrix)
+
+    glU.clearCanvas()
+    glU.render({
+        program,
+
+        posAttrLoc,
+        bufferPolygons,
+
+        colorAttrLoc,
+        bufferColors,
+
+        matrixUniformLoc,
+        matrix: result,
+
+        bufferLength: polygons.length,
+    })
+}
 
 
-glU.clearCanvas()
-glU.render({
-    program,
-    posAttrLoc,
-    buffer,
-    bufferLength: pos.length,
-})
+/** MATH HELPERS **********************************************/
+
+const m4 = {
+    translate: (tx, ty, tz) => [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        tx, ty, tz, 1,
+    ],
+    yRotation: rad => {
+        const c = Math.cos(rad)
+        const s = Math.sin(rad)
+        return [
+            c, 0, -s, 0,
+            0, 1, 0, 0,
+            s, 0, c, 0,
+            0, 0, 0, 1,
+        ]
+    },
+    xRotation: rad => {
+        const c = Math.cos(rad)
+        const s = Math.sin(rad)
+        return [
+            1, 0, 0, 0,
+            0, c, s, 0,
+            0, -s, c, 0,
+            0, 0, 0, 1,
+        ];
+    },
+    multiply: function(a, b) {
+        const a00 = a[0 * 4 + 0],
+        a01 = a[0 * 4 + 1],
+        a02 = a[0 * 4 + 2],
+        a03 = a[0 * 4 + 3],
+        a10 = a[1 * 4 + 0],
+        a11 = a[1 * 4 + 1],
+        a12 = a[1 * 4 + 2],
+        a13 = a[1 * 4 + 3],
+        a20 = a[2 * 4 + 0],
+        a21 = a[2 * 4 + 1],
+        a22 = a[2 * 4 + 2],
+        a23 = a[2 * 4 + 3],
+        a30 = a[3 * 4 + 0],
+        a31 = a[3 * 4 + 1],
+        a32 = a[3 * 4 + 2],
+        a33 = a[3 * 4 + 3],
+        b00 = b[0 * 4 + 0],
+        b01 = b[0 * 4 + 1],
+        b02 = b[0 * 4 + 2],
+        b03 = b[0 * 4 + 3],
+        b10 = b[1 * 4 + 0],
+        b11 = b[1 * 4 + 1],
+        b12 = b[1 * 4 + 2],
+        b13 = b[1 * 4 + 3],
+        b20 = b[2 * 4 + 0],
+        b21 = b[2 * 4 + 1],
+        b22 = b[2 * 4 + 2],
+        b23 = b[2 * 4 + 3],
+        b30 = b[3 * 4 + 0],
+        b31 = b[3 * 4 + 1],
+        b32 = b[3 * 4 + 2],
+        b33 = b[3 * 4 + 3]
+        return [
+            b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30,
+            b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31,
+            b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32,
+            b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33,
+            b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30,
+            b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31,
+            b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32,
+            b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33,
+            b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30,
+            b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31,
+            b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32,
+            b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33,
+            b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30,
+            b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31,
+            b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32,
+            b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33,
+        ];
+    },
+}
+
+
+
+/** START *****************************************************/
+
+main ()
