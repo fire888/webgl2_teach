@@ -5,14 +5,13 @@
 const vShSrc = `
 attribute vec4 a_position;
 attribute vec4 a_color;
-
 uniform mat4 u_matrix;
 
 varying vec4 v_color;
 
 void main() {
     v_color = a_color;
-    gl_Position = a_position * u_matrix;
+    gl_Position = u_matrix * a_position;
 }`
 
 const fShSrc = `
@@ -107,16 +106,17 @@ function prepareGl() {
     }) {
 
         gl.useProgram(program)
-        gl.uniformMatrix4fv(matrixUniformLoc, false, matrix)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors)
         gl.enableVertexAttribArray(colorAttrLoc)
         gl.vertexAttribPointer(colorAttrLoc, 3, gl.FLOAT, false, 0, 0)
-        gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferPolygons)
         gl.enableVertexAttribArray(posAttrLoc)
         gl.vertexAttribPointer(posAttrLoc, 3, gl.FLOAT, false, 0, 0)
+
+        gl.uniformMatrix4fv(matrixUniformLoc, false, matrix)
+
         gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
     }
 
@@ -262,7 +262,7 @@ function createGeom({
 const arrDataStairs = [
     {
         dataGeom: {
-            width: 0.8,
+            width: 0.2,
             h1: 0.2,
             hs: 0.04,
             lengthStep: 0.04,
@@ -271,59 +271,29 @@ const arrDataStairs = [
             countStairs: 10,
         },
         transform: {
-            move: [.1, .5, 0],
+            move: [0, 0, 0],
+            rot: [-1, -1, 0],
         },
-        // gl: {
-        //     a_geom: {
-        //         posAttrLoc: null,
-        //         buffer: null,
-        //         len: null,
-        //     },
-        //     a_color:{
-        //         colorAttrLoc: null,
-        //         buffer: null,
-        //         len: null,
-        //     },
-        //     u_matrix: {
-        //         matrixUniformLoc: null,
-        //     },
-        // },
     },
     {
         dataGeom: {
             width: 0.2,
-            h1: 0.2,
-            hs: 0.08,
-            lengthStep: 0.04,
-            lengthBottom: 0.1,
+            h1: 0.1,
+            hs: 0.06,
+            lengthStep: 0.01,
             lengthTop: 0.1,
-            countStairs: 15,
+            lengthBottom: 0.2,
+            countStairs: 10,
         },
         transform: {
-            move: [-.5, .5, 0],
+            move: [-1, -1, 0],
+            rot: [-1, -1, 0],
         },
-        // gl: {
-        //     a_geom: {
-        //         posAttrLoc: null,
-        //         buffer: null,
-        //         len: null,
-        //     },
-        //     a_color:{
-        //         colorAttrLoc: null,
-        //         buffer: null,
-        //         len: null,
-        //     },
-        //     u_matrix: {
-        //         matrixUniformLoc: null,
-        //     },
-        // },
     },
 ]
 
 function main() {
     const glU = prepareGl()
-
-    glU.clearCanvas()
 
     const {
         program,
@@ -338,27 +308,56 @@ function main() {
         const bufferPolygons = glU.createBuffer(polygons)
         const bufferColors = glU.createBuffer(colors)
 
-        const yRotMatrix = m4.yRotation(1)
-        const xRotMatrix = m4.xRotation(1)
-        let result = m4.multiply(yRotMatrix, xRotMatrix)
-        const trMatr = m4.translate(...arrDataStairs[i].transform.move)
-        result = m4.multiply(result, trMatr)
-
-        glU.render({
-            program,
-
-            posAttrLoc,
-            bufferPolygons,
-
-            colorAttrLoc,
-            bufferColors,
-
-            matrixUniformLoc,
-            matrix: result,
-
-            bufferLength: polygons.length,
-        })
+        arrDataStairs[i].a_pos = {
+            buffer: bufferPolygons,
+            loc: posAttrLoc,
+            len: polygons.length,
+        }
+        arrDataStairs[i].a_color = {
+            buffer: bufferColors,
+            loc: colorAttrLoc,
+            len: colors.length,
+        }
+        arrDataStairs[i].u_matrix = {
+            loc: matrixUniformLoc,
+        }
     }
+
+
+    function draw (d) {
+        glU.clearCanvas()
+        for (let i = 0; i < arrDataStairs.length; ++i) {
+            const item = arrDataStairs[i]
+
+            const x = item.transform.move[0] + (Math.sin(d) / 2)
+            const y = item.transform.move[1] + (Math.sin(d) / 2)
+            const translate = m4.translate(x, y ,0)
+            const xRot = m4.xRotation(item.transform.rot[0])
+            const yRot = m4.yRotation(item.transform.rot[1])
+            let result = m4.multiply(translate, xRot)
+            result = m4.multiply(result, yRot)
+
+            glU.render({
+                program,
+                posAttrLoc: item.a_pos.loc,
+                bufferPolygons: item.a_pos.buffer,
+                colorAttrLoc: item.a_color.loc,
+                bufferColors: item.a_color.buffer,
+                matrixUniformLoc: item.u_matrix.loc,
+                matrix: result,
+                bufferLength: item.a_pos.len,
+            })
+        }
+    }
+
+
+    let count = 0
+    const animate = () => {
+        count += 0.01
+        draw(count)
+        requestAnimationFrame(animate)
+    }
+    animate()
 }
 
 
@@ -371,16 +370,6 @@ const m4 = {
         0, 0, 1, 0,
         tx, ty, tz, 1,
     ],
-    yRotation: rad => {
-        const c = Math.cos(rad)
-        const s = Math.sin(rad)
-        return [
-            c, 0, -s, 0,
-            0, 1, 0, 0,
-            s, 0, c, 0,
-            0, 0, 0, 1,
-        ]
-    },
     xRotation: rad => {
         const c = Math.cos(rad)
         const s = Math.sin(rad)
@@ -390,6 +379,16 @@ const m4 = {
             0, -s, c, 0,
             0, 0, 0, 1,
         ];
+    },
+    yRotation: rad => {
+        const c = Math.cos(rad)
+        const s = Math.sin(rad)
+        return [
+            c, 0, -s, 0,
+            0, 1, 0, 0,
+            s, 0, c, 0,
+            0, 0, 0, 1,
+        ]
     },
     multiply: function(a, b) {
         const a00 = a[0 * 4 + 0],
