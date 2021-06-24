@@ -34,7 +34,10 @@ function prepareGl() {
         canvas.style.border = '1px solid #000000'
         document.body.appendChild(canvas)
         document.body.style.textAlign = 'center'
-        return canvas.getContext('webgl2')
+        const gl = canvas.getContext('webgl2')
+        gl.enable(gl.CULL_FACE)
+        gl.enable(gl.DEPTH_TEST)
+        return gl
     }
 
 
@@ -87,9 +90,9 @@ function prepareGl() {
     }
 
 
-    function clearCanvas() {
+    function clearCanvas(color) {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-        gl.clearColor(0, 0, 0, 1)
+        gl.clearColor(...color)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     }
 
@@ -141,7 +144,7 @@ function createGeom({
     lengthStep = 0.04,
     lengthTop = 0.2,
     lengthBottom = 0.2,
-    countStairs = 10
+    countSteps = 10
 } = null) {
 
     function createPoints() {
@@ -149,61 +152,81 @@ function createGeom({
         const arrGeomWT = []
         const arrGeomWG = []
 
+        const w = width / 2
+
         arrGeom.push([
-            0, 0, 0,
-            lengthBottom, 0, 0,
-            lengthBottom, h1, 0,
-            0, h1, 0,
+            0, 0, -w,
+            lengthBottom, 0, -w,
+            lengthBottom, h1, -w,
+            0, h1, -w,
+        ])
+        arrGeom.push([
+            lengthBottom, 0, w,
+            0, 0, w,
+            0, h1, w,
+            lengthBottom, h1, w,
         ])
         arrGeomWT.push([
-            0, 0, 0,
-            0, h1, 0,
-            0, h1, width,
-            0, 0, width,
+            0, 0, -w,
+            0, h1, -w,
+            0, h1, w,
+            0, 0, w,
         ])
         arrGeomWG.push([
-            0, h1, 0,
-            lengthBottom, h1, 0,
-            lengthBottom, h1, width,
-            0, h1, width,
+            0, h1, -w,
+            lengthBottom, h1, -w,
+            lengthBottom, h1, w,
+            0, h1, w,
         ])
 
         let sCurrentX = lengthBottom
         let sCurrentY = h1
-        for (let i = 0; i < countStairs; ++i) {
+        for (let i = 0; i < countSteps; ++i) {
             sCurrentY += hs
             arrGeom.push([
-                sCurrentX, 0, 0,
-                sCurrentX + lengthStep, 0, 0,
-                sCurrentX + lengthStep, sCurrentY, 0,
-                sCurrentX, sCurrentY, 0,
+                sCurrentX, 0, -w,
+                sCurrentX + lengthStep, 0, -w,
+                sCurrentX + lengthStep, sCurrentY, -w,
+                sCurrentX, sCurrentY, -w,
+            ])
+            arrGeom.push([
+                sCurrentX + lengthStep, 0, w,
+                sCurrentX, 0, w,
+                sCurrentX, sCurrentY, w,
+                sCurrentX + lengthStep, sCurrentY, w,
             ])
             arrGeomWT.push([
-                sCurrentX, sCurrentY - hs, 0,
-                sCurrentX, sCurrentY, 0,
-                sCurrentX, sCurrentY, width,
-                sCurrentX, sCurrentY - hs, width,
+                sCurrentX, sCurrentY - hs, -w,
+                sCurrentX, sCurrentY, -w,
+                sCurrentX, sCurrentY, w,
+                sCurrentX, sCurrentY - hs, w,
             ])
             arrGeomWG.push([
-                sCurrentX, sCurrentY, 0,
-                sCurrentX + lengthStep, sCurrentY, 0,
-                sCurrentX + lengthStep, sCurrentY, width,
-                sCurrentX, sCurrentY, width,
+                sCurrentX, sCurrentY, -w,
+                sCurrentX + lengthStep, sCurrentY, -w,
+                sCurrentX + lengthStep, sCurrentY, w,
+                sCurrentX, sCurrentY, w,
             ])
             sCurrentX += lengthStep
         }
 
         arrGeom.push([
-            sCurrentX, 0, 0,
-            sCurrentX + lengthTop, 0, 0,
-            sCurrentX + lengthTop, sCurrentY, 0,
-            sCurrentX, sCurrentY, 0,
+            sCurrentX, 0, -w,
+            sCurrentX + lengthTop, 0, -w,
+            sCurrentX + lengthTop, sCurrentY, -w,
+            sCurrentX, sCurrentY, -w,
+        ])
+        arrGeom.push([
+            sCurrentX + lengthTop, 0, w,
+            sCurrentX, 0, w,
+            sCurrentX, sCurrentY, w,
+            sCurrentX + lengthTop, sCurrentY, w,
         ])
         arrGeomWG.push([
-            sCurrentX, sCurrentY, 0,
-            sCurrentX + lengthTop, sCurrentY, 0,
-            sCurrentX + lengthTop, sCurrentY, width,
-            sCurrentX, sCurrentY, width,
+            sCurrentX, sCurrentY, -w,
+            sCurrentX + lengthTop, sCurrentY, -w,
+            sCurrentX + lengthTop, sCurrentY, w,
+            sCurrentX, sCurrentY, w,
         ])
 
         return { arrGeom, arrGeomWT, arrGeomWG }
@@ -214,8 +237,8 @@ function createGeom({
         const colors = []
 
         fillArr(arr, arrGeom, colors, [0, 1, 0])
-        fillArr(arr, arrGeomWT, colors, [1, 1, 0])
-        fillArr(arr, arrGeomWG, colors, [1, 1, 1])
+        fillArr(arr, arrGeomWT, colors, [0, 0, 1])
+        fillArr(arr, arrGeomWG, colors, [1, 0, 0])
 
         return [ arr, colors ]
     }
@@ -259,41 +282,66 @@ function createGeom({
 
 /** MAIN ******************************************************/
 
-const arrDataStairs = [
-    {
+
+function createStairsManager (glU) {
+    const scheme = {
         dataGeom: {
-            width: 0.2,
-            h1: 0.2,
-            hs: 0.04,
-            lengthStep: 0.04,
-            lengthTop: 0.2,
-            lengthBottom: 0.2,
-            countStairs: 10,
-        },
-        transform: {
-            move: [0, 0, 0],
-            rot: [-1, -1, 0],
-        },
-    },
-    {
-        dataGeom: {
-            width: 0.2,
-            h1: 0.1,
+            width: 0.18,
+            h1: .05,
             hs: 0.06,
             lengthStep: 0.01,
-            lengthTop: 0.1,
-            lengthBottom: 0.2,
-            countStairs: 10,
+            lengthBottom: 0.18,
+            lengthTop: 1.5,
+            countSteps: 10,
         },
         transform: {
             move: [-1, -1, 0],
             rot: [-1, -1, 0],
         },
-    },
-]
+        a_pos: {
+            buffer: null,
+            loc: null,
+            len: null,
+        },
+        a_color: {
+            buffer: null,
+            loc: null,
+            len: null,
+        },
+        u_matrix: {
+            loc: null,
+        },
+    }
 
-function main() {
-    const glU = prepareGl()
+
+
+    function createDataStairs(scheme, count) {
+        const stairsData = []
+        let xOffset = 0
+        let yOffset = 0
+        let prevRad = null
+        for (let i = 0; i < count; ++i) {
+            const obj = JSON.parse(JSON.stringify(scheme))
+            obj.dataGeom.lengthStep = Math.random() * 0.05 + 0.005
+            obj.dataGeom.countSteps = Math.floor(Math.random() * 30)
+            obj.dataGeom.hs = Math.random() * 0.05 + 0.005
+
+            const isRight = prevRad < -Math.PI / 2
+
+            obj.transform.move[0] = isRight ? .15 : -.15
+            yOffset += .2
+            obj.transform.move[1] = yOffset
+
+
+            const radY = isRight  ? -Math.PI / 4 : -Math.PI / 2 - Math.PI / 4
+            prevRad = radY
+            obj.transform.rot[1] = radY
+
+            stairsData.push(obj)
+        }
+        return { stairsData, yOffset }
+    }
+
 
     const {
         program,
@@ -303,36 +351,51 @@ function main() {
     } = glU.prepareProgram(vShSrc, fShSrc)
 
 
-    for (let i = 0; i < arrDataStairs.length; ++i) {
-        const { polygons, colors } = createGeom(arrDataStairs[i].dataGeom)
-        const bufferPolygons = glU.createBuffer(polygons)
-        const bufferColors = glU.createBuffer(colors)
+    function createStairsGL(arr) {
+        for (let i = 0; i < arr.length; ++i) {
+            const { polygons, colors } = createGeom(arr[i].dataGeom)
 
-        arrDataStairs[i].a_pos = {
-            buffer: bufferPolygons,
-            loc: posAttrLoc,
-            len: polygons.length,
+            arr[i].a_pos = {
+                buffer: glU.createBuffer(polygons),
+                loc: posAttrLoc,
+                len: polygons.length,
+            }
+            arr[i].a_color = {
+                buffer: glU.createBuffer(colors),
+                loc: colorAttrLoc,
+                len: colors.length,
+            }
+            arr[i].u_matrix = {
+                loc: matrixUniformLoc,
+            }
         }
-        arrDataStairs[i].a_color = {
-            buffer: bufferColors,
-            loc: colorAttrLoc,
-            len: colors.length,
-        }
-        arrDataStairs[i].u_matrix = {
-            loc: matrixUniformLoc,
-        }
+
+        return arr
     }
 
 
-    function draw (d) {
-        glU.clearCanvas()
-        for (let i = 0; i < arrDataStairs.length; ++i) {
-            const item = arrDataStairs[i]
 
-            const x = item.transform.move[0] + (Math.sin(d) / 2)
-            const y = item.transform.move[1] + (Math.sin(d) / 2)
+
+    let stairs, lengthY
+
+    function createStairs(num = 30) {
+        const { stairsData, yOffset } = createDataStairs(scheme, num)
+        lengthY = yOffset
+        stairs = createStairsGL(stairsData)
+    }
+
+    function update (d) {
+        for (let i = 0; i < stairs.length; ++i) {
+            const item = stairs[i]
+
+            const x = item.transform.move[0]
+            const y = ((item.transform.move[1] - d - 1.5) % lengthY) + 1.5
+            //const y = item.transform.move[1]
+
+
             const translate = m4.translate(x, y ,0)
             const xRot = m4.xRotation(item.transform.rot[0])
+            //const yRot = m4.yRotation(item.transform.rot[1] + (Math.sin(d) * Math.PI * 2))
             const yRot = m4.yRotation(item.transform.rot[1])
             let result = m4.multiply(translate, xRot)
             result = m4.multiply(result, yRot)
@@ -351,10 +414,27 @@ function main() {
     }
 
 
-    let count = 0
+    return {
+        createStairs,
+        update,
+    }
+}
+
+
+
+function main() {
+    const glU = prepareGl()
+
+    const stairsManager = createStairsManager(glU)
+    stairsManager.createStairs(20)
+
+
+    let d = 0
     const animate = () => {
-        count += 0.01
-        draw(count)
+        glU.clearCanvas([1, 0, 0, 1])
+        stairsManager.update(d)
+
+        d += 0.005
         requestAnimationFrame(animate)
     }
     animate()
