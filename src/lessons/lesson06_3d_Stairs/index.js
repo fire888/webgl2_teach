@@ -24,6 +24,7 @@ void main() {
 }`
 
 
+
 /** GL *************************************************************/
 
 function prepareGl() {
@@ -92,21 +93,21 @@ function prepareGl() {
 
     function clearCanvas(color) {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-        gl.clearColor(...color)
+        gl.clearColor(...color, 1)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     }
 
 
     function render({
-        program,
-        posAttrLoc,
-        bufferPolygons,
-        colorAttrLoc,
-        bufferColors,
-        bufferLength,
-        matrixUniformLoc,
-        matrix,
-    }) {
+            program,
+            posAttrLoc,
+            bufferPolygons,
+            colorAttrLoc,
+            bufferColors,
+            bufferLength,
+            matrixUniformLoc,
+            matrix,
+        }) {
 
         gl.useProgram(program)
 
@@ -135,17 +136,25 @@ function prepareGl() {
 }
 
 
+
 /** GEOMETRY ***************************************************/
 
 function createGeom({
-    width = 0.2,
-    h1 = 0.2,
-    hs= 0.04,
-    lengthStep = 0.04,
-    lengthTop = 0.2,
-    lengthBottom = 0.2,
-    countSteps = 10
-} = null) {
+        width = 0.2,
+        h1 = 0.2,
+        hs= 0.04,
+        lengthStep = 0.04,
+        lengthTop = 0.2,
+        lengthBottom = 0.2,
+        countSteps = 10,
+        topEmptyOffset = 0.1,
+        lenEmpty = 0.3,
+        lenColumn = 0.1,
+        isRight = true,
+        color1,
+        color2,
+        color3,
+    }) {
 
     function createPoints() {
         const arrGeom = []
@@ -154,19 +163,22 @@ function createGeom({
 
         const w = width / 2
 
-        arrGeom.push([
-            0, 0, -w,
-            lengthBottom, 0, -w,
-            lengthBottom, h1, -w,
-            0, h1, -w,
-        ])
-        arrGeom.push([
-            lengthBottom, 0, w,
-            0, 0, w,
-            0, h1, w,
-            lengthBottom, h1, w,
-        ])
-        arrGeomWT.push([
+        const geomColor1 = isRight ? arrGeom : arrGeomWT
+        const geomColor2 = isRight ? arrGeomWT : arrGeom
+        isRight
+            ? geomColor1.push([
+                0, 0, -w,
+                lengthBottom, 0, -w,
+                lengthBottom, h1, -w,
+                0, h1, -w,
+            ])
+            : geomColor1.push([
+                lengthBottom, 0, w,
+                0, 0, w,
+                0, h1, w,
+                lengthBottom, h1, w,
+            ])
+        geomColor2.push([
             0, 0, -w,
             0, h1, -w,
             0, h1, w,
@@ -183,19 +195,20 @@ function createGeom({
         let sCurrentY = h1
         for (let i = 0; i < countSteps; ++i) {
             sCurrentY += hs
-            arrGeom.push([
-                sCurrentX, 0, -w,
-                sCurrentX + lengthStep, 0, -w,
-                sCurrentX + lengthStep, sCurrentY, -w,
-                sCurrentX, sCurrentY, -w,
-            ])
-            arrGeom.push([
-                sCurrentX + lengthStep, 0, w,
-                sCurrentX, 0, w,
-                sCurrentX, sCurrentY, w,
-                sCurrentX + lengthStep, sCurrentY, w,
-            ])
-            arrGeomWT.push([
+            isRight
+                ? geomColor1.push([
+                        sCurrentX, 0, -w,
+                        sCurrentX + lengthStep, 0, -w,
+                        sCurrentX + lengthStep, sCurrentY, -w,
+                        sCurrentX, sCurrentY, -w,
+                    ])
+                : geomColor1.push([
+                    sCurrentX + lengthStep, 0, w,
+                    sCurrentX, 0, w,
+                    sCurrentX, sCurrentY, w,
+                    sCurrentX + lengthStep, sCurrentY, w,
+                ])
+            geomColor2.push([
                 sCurrentX, sCurrentY - hs, -w,
                 sCurrentX, sCurrentY, -w,
                 sCurrentX, sCurrentY, w,
@@ -210,18 +223,19 @@ function createGeom({
             sCurrentX += lengthStep
         }
 
-        arrGeom.push([
-            sCurrentX, 0, -w,
-            sCurrentX + lengthTop, 0, -w,
-            sCurrentX + lengthTop, sCurrentY, -w,
-            sCurrentX, sCurrentY, -w,
-        ])
-        arrGeom.push([
-            sCurrentX + lengthTop, 0, w,
-            sCurrentX, 0, w,
-            sCurrentX, sCurrentY, w,
-            sCurrentX + lengthTop, sCurrentY, w,
-        ])
+        isRight
+            ? geomColor1.push([
+                    sCurrentX, 0, -w,
+                    sCurrentX + lengthTop, 0, -w,
+                    sCurrentX + lengthTop, sCurrentY, -w,
+                    sCurrentX, sCurrentY, -w,
+                ])
+            : geomColor1.push([
+                sCurrentX + lengthTop, 0, w,
+                sCurrentX, 0, w,
+                sCurrentX, sCurrentY, w,
+                sCurrentX + lengthTop, sCurrentY, w,
+            ])
         arrGeomWG.push([
             sCurrentX, sCurrentY, -w,
             sCurrentX + lengthTop, sCurrentY, -w,
@@ -229,20 +243,69 @@ function createGeom({
             sCurrentX, sCurrentY, w,
         ])
 
+
+        sCurrentX += lengthTop
+        const saveX = sCurrentX
+        for (let i = 0; i < 3; ++i) {
+            isRight
+                ? geomColor1.push([
+                    sCurrentX, Math.max(sCurrentY - topEmptyOffset, 0), -w,
+                    sCurrentX + lenEmpty, Math.max(sCurrentY - topEmptyOffset, 0), -w,
+                    sCurrentX + lenEmpty, sCurrentY, -w,
+                    sCurrentX, sCurrentY, -w
+                ])
+                : geomColor1.push([
+                    sCurrentX + lenEmpty, Math.max(sCurrentY - topEmptyOffset, 0), w,
+                    sCurrentX, Math.max(sCurrentY - topEmptyOffset, 0), w,
+                    sCurrentX, sCurrentY, w,
+                    sCurrentX + lenEmpty, sCurrentY, w,
+                ])
+            sCurrentX += lenEmpty
+            isRight
+                ? geomColor1.push([
+                    sCurrentX, 0, -w,
+                    sCurrentX + lenColumn, 0, -w,
+                    sCurrentX + lenColumn, sCurrentY, -w,
+                    sCurrentX, sCurrentY, -w
+                ])
+                : geomColor1.push([
+                    sCurrentX + lenColumn, 0, w,
+                    sCurrentX, 0, w,
+                    sCurrentX, sCurrentY, w,
+                    sCurrentX + lenColumn, sCurrentY, w,
+                ])
+            geomColor2.push([
+                sCurrentX, 0, -w,
+                sCurrentX, sCurrentY - topEmptyOffset, -w,
+                sCurrentX, sCurrentY - topEmptyOffset, w,
+                sCurrentX, 0, w,
+            ])
+            sCurrentX += lenColumn
+        }
+
+        arrGeomWG.push([
+            saveX, sCurrentY, -w,
+            sCurrentX, sCurrentY, -w,
+            sCurrentX, sCurrentY, w,
+            saveX, sCurrentY, w,
+        ])
+
         return { arrGeom, arrGeomWT, arrGeomWG }
     }
 
-    function createPolygons({ arrGeom, arrGeomWT, arrGeomWG }) {
+
+
+    function createPolygons({ arrGeom, color1, arrGeomWT, color2, arrGeomWG, color3 }) {
         const arr = []
         const colors = []
 
-        fillArr(arr, arrGeom, colors, [0, 1, 0])
-        fillArr(arr, arrGeomWT, colors, [0, 0, 1])
-        fillArr(arr, arrGeomWG, colors, [1, 0, 0])
+        fillArr(arr, arrGeom, colors, color1)
+        fillArr(arr, arrGeomWT, colors, color2)
+        fillArr(arr, arrGeomWG, colors, color3)
 
         return [ arr, colors ]
     }
-    
+
     function fillArr(arr, geom, colors, color) {
         const indStart = arr.length
         for (let i = 0; i < geom.length; ++i) {
@@ -265,8 +328,9 @@ function createGeom({
         ]
     }
 
+
     const { arrGeom, arrGeomWT, arrGeomWG } = createPoints()
-    const [ polygons, colors ] = createPolygons({ arrGeom, arrGeomWT, arrGeomWG })
+    const [ polygons, colors ] = createPolygons({ arrGeom, color1, arrGeomWT, color2, arrGeomWG, color3 })
     return {
         polygons: new Float32Array(polygons),
         colors: new Float32Array(colors)
@@ -275,24 +339,22 @@ function createGeom({
 
 
 
+/** STAIRS MANAGER ******************************************************/
 
-
-
-
-
-/** MAIN ******************************************************/
-
-
-function createStairsManager (glU) {
-    const scheme = {
+function createStairsManager (glU, colors) {
+    const schemeStair = {
         dataGeom: {
             width: 0.18,
             h1: .05,
             hs: 0.06,
             lengthStep: 0.01,
-            lengthBottom: 0.18,
-            lengthTop: 1.5,
+            lengthBottom: 0.36,
+            lengthTop: 0.05,
             countSteps: 10,
+            isRight: true,
+            color1: colors[0],
+            color2: colors[1],
+            color3: colors[2],
         },
         transform: {
             move: [-1, -1, 0],
@@ -315,32 +377,27 @@ function createStairsManager (glU) {
 
 
 
-    function createDataStairs(scheme, count) {
+    function prepareStairsData(scheme, count) {
         const stairsData = []
-        let xOffset = 0
         let yOffset = 0
-        let prevRad = null
         for (let i = 0; i < count; ++i) {
             const obj = JSON.parse(JSON.stringify(scheme))
             obj.dataGeom.lengthStep = Math.random() * 0.05 + 0.005
-            obj.dataGeom.countSteps = Math.floor(Math.random() * 30)
+            obj.dataGeom.countSteps = Math.floor(Math.random() * 25)
             obj.dataGeom.hs = Math.random() * 0.05 + 0.005
+            const isRight = i % 2 > 0
+            obj.dataGeom.isRight = isRight
 
-            const isRight = prevRad < -Math.PI / 2
-
-            obj.transform.move[0] = isRight ? .15 : -.15
+            obj.transform.move[0] = isRight ? 0 : -0
             yOffset += .2
-            obj.transform.move[1] = yOffset
-
-
-            const radY = isRight  ? -Math.PI / 4 : -Math.PI / 2 - Math.PI / 4
-            prevRad = radY
-            obj.transform.rot[1] = radY
+            obj.transform.move[1] = yOffset - 1.5
+            obj.transform.rot[1] = isRight ? -Math.PI / 4 : -Math.PI / 2 - Math.PI / 4
 
             stairsData.push(obj)
         }
         return { stairsData, yOffset }
     }
+
 
 
     const {
@@ -351,7 +408,7 @@ function createStairsManager (glU) {
     } = glU.prepareProgram(vShSrc, fShSrc)
 
 
-    function createStairsGL(arr) {
+    function prepareStairsGL(arr) {
         for (let i = 0; i < arr.length; ++i) {
             const { polygons, colors } = createGeom(arr[i].dataGeom)
 
@@ -375,27 +432,25 @@ function createStairsManager (glU) {
 
 
 
-
     let stairs, lengthY
 
     function createStairs(num = 30) {
-        const { stairsData, yOffset } = createDataStairs(scheme, num)
+        const { stairsData, yOffset } = prepareStairsData(schemeStair, num)
         lengthY = yOffset
-        stairs = createStairsGL(stairsData)
+        stairs = prepareStairsGL(stairsData)
     }
 
-    function update (d) {
+
+
+    function updateStairs (d) {
         for (let i = 0; i < stairs.length; ++i) {
             const item = stairs[i]
 
             const x = item.transform.move[0]
             const y = ((item.transform.move[1] - d - 1.5) % lengthY) + 1.5
-            //const y = item.transform.move[1]
-
 
             const translate = m4.translate(x, y ,0)
             const xRot = m4.xRotation(item.transform.rot[0])
-            //const yRot = m4.yRotation(item.transform.rot[1] + (Math.sin(d) * Math.PI * 2))
             const yRot = m4.yRotation(item.transform.rot[1])
             let result = m4.multiply(translate, xRot)
             result = m4.multiply(result, yRot)
@@ -416,29 +471,28 @@ function createStairsManager (glU) {
 
     return {
         createStairs,
-        update,
+        updateStairs,
     }
 }
 
 
-
-function main() {
+function main(colors) {
     const glU = prepareGl()
-
-    const stairsManager = createStairsManager(glU)
+    const stairsManager = createStairsManager(glU, colors)
     stairsManager.createStairs(20)
 
 
     let d = 0
     const animate = () => {
-        glU.clearCanvas([1, 0, 0, 1])
-        stairsManager.update(d)
+        glU.clearCanvas(colors[3])
+        stairsManager.updateStairs(d)
 
         d += 0.005
         requestAnimationFrame(animate)
     }
     animate()
 }
+
 
 
 /** MATH HELPERS **********************************************/
@@ -472,37 +526,37 @@ const m4 = {
     },
     multiply: function(a, b) {
         const a00 = a[0 * 4 + 0],
-        a01 = a[0 * 4 + 1],
-        a02 = a[0 * 4 + 2],
-        a03 = a[0 * 4 + 3],
-        a10 = a[1 * 4 + 0],
-        a11 = a[1 * 4 + 1],
-        a12 = a[1 * 4 + 2],
-        a13 = a[1 * 4 + 3],
-        a20 = a[2 * 4 + 0],
-        a21 = a[2 * 4 + 1],
-        a22 = a[2 * 4 + 2],
-        a23 = a[2 * 4 + 3],
-        a30 = a[3 * 4 + 0],
-        a31 = a[3 * 4 + 1],
-        a32 = a[3 * 4 + 2],
-        a33 = a[3 * 4 + 3],
-        b00 = b[0 * 4 + 0],
-        b01 = b[0 * 4 + 1],
-        b02 = b[0 * 4 + 2],
-        b03 = b[0 * 4 + 3],
-        b10 = b[1 * 4 + 0],
-        b11 = b[1 * 4 + 1],
-        b12 = b[1 * 4 + 2],
-        b13 = b[1 * 4 + 3],
-        b20 = b[2 * 4 + 0],
-        b21 = b[2 * 4 + 1],
-        b22 = b[2 * 4 + 2],
-        b23 = b[2 * 4 + 3],
-        b30 = b[3 * 4 + 0],
-        b31 = b[3 * 4 + 1],
-        b32 = b[3 * 4 + 2],
-        b33 = b[3 * 4 + 3]
+            a01 = a[0 * 4 + 1],
+            a02 = a[0 * 4 + 2],
+            a03 = a[0 * 4 + 3],
+            a10 = a[1 * 4 + 0],
+            a11 = a[1 * 4 + 1],
+            a12 = a[1 * 4 + 2],
+            a13 = a[1 * 4 + 3],
+            a20 = a[2 * 4 + 0],
+            a21 = a[2 * 4 + 1],
+            a22 = a[2 * 4 + 2],
+            a23 = a[2 * 4 + 3],
+            a30 = a[3 * 4 + 0],
+            a31 = a[3 * 4 + 1],
+            a32 = a[3 * 4 + 2],
+            a33 = a[3 * 4 + 3],
+            b00 = b[0 * 4 + 0],
+            b01 = b[0 * 4 + 1],
+            b02 = b[0 * 4 + 2],
+            b03 = b[0 * 4 + 3],
+            b10 = b[1 * 4 + 0],
+            b11 = b[1 * 4 + 1],
+            b12 = b[1 * 4 + 2],
+            b13 = b[1 * 4 + 3],
+            b20 = b[2 * 4 + 0],
+            b21 = b[2 * 4 + 1],
+            b22 = b[2 * 4 + 2],
+            b23 = b[2 * 4 + 3],
+            b30 = b[3 * 4 + 0],
+            b31 = b[3 * 4 + 1],
+            b32 = b[3 * 4 + 2],
+            b33 = b[3 * 4 + 3]
         return [
             b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30,
             b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31,
@@ -528,4 +582,11 @@ const m4 = {
 
 /** START *****************************************************/
 
-main ()
+const colors = [
+    [0.4744710385589861,0.06608719024768228,0.08711951962455244],
+    [0.8306956077250696,0.6354755611608229,0.20973172956690278],
+    [0.4000863961159107,0.8624258707771839,0.4668493034128858],
+    [0.4661298822911881,0.4542687482277381,0.34983460352031015],
+]
+
+main(colors)
