@@ -1,23 +1,17 @@
-const vShaderSrc =
-`#version 300 es
-
-in vec2 a_position;
+const vShaderSrc = `
+attribute vec2 a_position;
 
 void main () {
     gl_Position = vec4(a_position, 0., 1.);
 }    
 `
 
-const fShaderSrc =
-`#version 300 es
-
-precision highp float;
-
-out vec4 colorOut;
+const fShaderSrc = `
+precision mediump float;
 uniform vec4 u_color;
 
 void main() {
-    colorOut = u_color;
+    gl_FragColor = u_color;
 }
 `
 
@@ -38,7 +32,7 @@ const glUtils = () => {
         canvas.style.border = '2px solid #000000'
         canvas.style.boxSizing = 'border-box'
         document.body.appendChild(canvas)
-        return canvas.getContext('webgl2')
+        return canvas.getContext('webgl')
     }
 
 
@@ -112,7 +106,7 @@ const glUtils = () => {
             gl.uniform4f(colorUniformLocation, ...color)
             gl.enableVertexAttribArray(posAttributeLocation)
             gl.vertexAttribPointer(posAttributeLocation, size, type, normalize, stride, offset)
-            gl.drawArrays(gl.TRIANGLES, 0, layer.poses32.length)
+            gl.drawArrays(gl.TRIANGLES, 0, layer.poses32.length / 2)
         }
     }
 }
@@ -301,7 +295,7 @@ function createGeom (val = 0) {
 
 /** COLOR UPDATER ******************************************************/
 
-export function createColorUpdater() {
+function createColorUpdater() {
 
     const getRanColor = () => [Math.random(), Math.random(), Math.random(), 1]
     const colors = {
@@ -313,7 +307,6 @@ export function createColorUpdater() {
         geomBevel02_01: getRanColor(),
         back: getRanColor(),
     }
-    console.log(JSON.stringify(colors))
     const arrStatesColors = [
         {"geomTop01":[0.061061990122547094,0.8178499612684555,0.4963069716228097,1],"geomTop02":[0.38346371635565357,0.005539668862797997,0.7782512477040859,1],"geomBevel01_00":[0.7628648304872341,0.6889642123998252,0.897430847709699,1],"geomBevel01_01":[0.08506765968768115,0.6483427684312006,0.23899073017141603,1],"geomBevel02_00":[0.17580958727582696,0.9368246793675437,0.736277758461634,1],"geomBevel02_01":[0.06546655456859063,0.6606894757651116,0.37580106865195173,1],"back":[0.23847078723067305,0.047939100065423235,0.9925846826877804,1]},
         {"geomTop01":[0.5658981406782624,0.18916278529551445,0.7200738307526098,1],"geomTop02":[0.07007510670894024,0.9810110714850953,0.27661021617748527,1],"geomBevel01_00":[0.7595947382960011,0.8316554205307327,0.27008358562246926,1],"geomBevel01_01":[0.33983669021959506,0.699828222852855,0.4188743303008313,1],"geomBevel02_00":[0.245398390482773,0.7316534438373163,0.754391702125506,1],"geomBevel02_01":[0.21094552256324173,0.46707230832021596,0.7081347652037566,1],"back":[0.059921717993761,0.9084427741195202,0.13560542717420798,1]},
@@ -344,7 +337,6 @@ export function createColorUpdater() {
             if (count > 200) {
                 count = 0
 
-                console.log(currentStateColor)
                 for (let key in colors) {
                     colors[key] = arrStatesColors[currentStateColor][key]
                 }
@@ -360,22 +352,25 @@ export function createColorUpdater() {
 
 
 
+function main () {
+      const colorUpdater = createColorUpdater()
+      const glU = glUtils()
+      const layerManager = createLayersManager(glU, createGeom())
+      glU.prepareProgram()
 
-const colorUpdater = createColorUpdater()
-const glU = glUtils()
-const layerManager = createLayersManager(glU, createPath())
-glU.prepareProgram()
+      let dist = 0
+      const spd = 0.05
+      const animate = () => {
+        const color = colorUpdater.update()
+        glU.clearCanvas(color.back)
 
-let dist = 0
-const spd = 0.05
-const animate = () => {
-    const color = colorUpdater.update()
-    glU.clearCanvas(color.back)
+        dist += spd
+        const poses = createGeom(dist)
+        layerManager.update(poses, color)
 
-    dist += spd
-    const poses = createGeom(dist)
-    layerManager.update(poses, color)
+        requestAnimationFrame(animate)
+    }
+    animate()
+} 
 
-    requestAnimationFrame(animate)
-}
-animate()
+window.addEventListener('load', main) 

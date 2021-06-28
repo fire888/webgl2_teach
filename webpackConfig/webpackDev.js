@@ -8,6 +8,7 @@ module.exports = merge( appCommonConfig, {
   devServer: {
     contentBase: path.join(__dirname, '../public'),
     compress: true,
-    port: 9001
+    port: 9000,
+    //host: '192.168.42.75',
   }
 });

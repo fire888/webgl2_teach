@@ -28,18 +28,21 @@ void main() {
 /** GL *************************************************************/
 
 function prepareGl() {
-    function createGl() {
+    function createGL() {
         const canvas = document.createElement('canvas')
         const s = Math.min(window.innerWidth, window.innerHeight)
         canvas.width = canvas.height = s
         canvas.style.border = '1px solid #000000'
         document.body.appendChild(canvas)
         document.body.style.textAlign = 'center'
-        const gl = canvas.getContext('webgl2')
+        const gl = canvas.getContext('webgl')
         gl.enable(gl.CULL_FACE)
         gl.enable(gl.DEPTH_TEST)
         return gl
     }
+
+    const gl = createGL()
+
 
 
     function createBuffer(pos) {
@@ -124,8 +127,6 @@ function prepareGl() {
         gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
     }
 
-
-    const gl = createGl()
 
     return {
         clearCanvas,
@@ -415,12 +416,12 @@ function createStairsManager (glU, colors) {
             arr[i].a_pos = {
                 buffer: glU.createBuffer(polygons),
                 loc: posAttrLoc,
-                len: polygons.length,
+                len: polygons.length / 3,
             }
             arr[i].a_color = {
                 buffer: glU.createBuffer(colors),
                 loc: colorAttrLoc,
-                len: colors.length,
+                len: colors.length / 3,
             }
             arr[i].u_matrix = {
                 loc: matrixUniformLoc,

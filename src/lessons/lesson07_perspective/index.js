@@ -9,7 +9,10 @@ import fragmentShaderSource from './ss.frag'
 function main() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
-    var canvas = document.querySelector("#canvas");
+    var canvas = document.createElement("canvas");
+    canvas.width = 500
+    canvas.height = 500
+    document.body.appendChild(canvas)
     var gl = canvas.getContext("webgl2");
     if (!gl) {
         return;

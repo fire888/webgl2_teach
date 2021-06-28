@@ -1,9 +1,8 @@
 /** SHADERS *************************************************************/
 
-const vShaderSrc =
-`#version 300 es
+const vShaderSrc = `
 
-in vec2 a_position;
+attribute vec2 a_position;
 uniform mat3 u_matrix;
 void main() {
     vec3 pos = (u_matrix * vec3(a_position, 1.));
@@ -11,16 +10,12 @@ void main() {
 } 
 `
 
-const fShaderSrc =
-`#version 300 es
-
-precision highp float;
-
+const fShaderSrc = `
+precision mediump float;
 uniform vec4 u_color;
-out vec4 color;
 
 void main() {
-    color = u_color;
+    gl_FragColor = u_color;
 }
 `
 
@@ -35,7 +30,7 @@ function createGl () {
         canvas.style.border = '1px solid #333333'
         document.body.style.textAlign = 'center'
         document.body.appendChild(canvas)
-        return canvas.getContext('webgl2')
+        return canvas.getContext('webgl')
     }
 
     function createShader(gl, type, shaderSrc) {
@@ -112,7 +107,7 @@ function createGl () {
         gl.uniform4f(colorUniformLocation, ...color)
         gl.enableVertexAttribArray(posAttribPointer)
         gl.vertexAttribPointer(posAttribPointer, 2, gl.FLOAT, false, 0, 0)
-        gl.drawArrays(gl.TRIANGLES, 0, array32.length)
+        gl.drawArrays(gl.TRIANGLES, 0, array32.length / 2)
     }
 
 
