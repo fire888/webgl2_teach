@@ -7,7 +7,7 @@
 //import './lessons/02_transform/index.js'
 //import './lessons/02_transform/index2.js'
 
-import './lessons/02_02_customStar/'
+//import './lessons/02_02_customStar/'
 //import './lessons/02_03_transform/'
 
 //import './lessons/03_textures/index.js'
@@ -23,6 +23,9 @@ import './lessons/02_02_customStar/'
 //import './lessons/lesson07_perspective_test'
 
 //import './lessons/lesson08_lookAt/'
+import './lessons/lesson08_cameraMove/index.js'
+
+
 //import './lessons/lesson09_dirLight/'
 //import './lessons/lesson10_pointLight/'
 //import './lessons/lesson12_lathe/'
