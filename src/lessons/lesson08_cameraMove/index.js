@@ -111,6 +111,7 @@ function render({ program, buffers, mat4, matLoc }) {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0)
     }
+    console.log(matLoc, mat4)
     gl.uniformMatrix4fv(matLoc, false, mat4)
     gl.drawArrays(gl.TRIANGLES, 0, buffers.pos.bufferLength)
 }

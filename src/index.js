@@ -23,9 +23,14 @@
 //import './lessons/lesson07_perspective_test'
 
 //import './lessons/lesson08_lookAt/'
-import './lessons/lesson08_cameraMove/index.js'
+//import './lessons/lesson08_cameraMove/index.js'
 
 
 //import './lessons/lesson09_dirLight/'
+import './lessons/lesson09_dirLight_02/index'
+
+
+
+
 //import './lessons/lesson10_pointLight/'
 //import './lessons/lesson12_lathe/'
