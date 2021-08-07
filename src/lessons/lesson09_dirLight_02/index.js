@@ -1,19 +1,25 @@
-/**https://webglfundamentals.org/webgl/lessons/ru/webgl-3d-lighting-directional.html */
+/** https://webglfundamentals.org/webgl/lessons/ru/webgl-3d-lighting-directional.html */
 
 
 const vSh = `
 attribute vec4 a_position;
+attribute vec3 a_normal;
 uniform mat4 u_viewMatrix;
+varying vec3 v_normal;
 
 void main() {
+    v_normal = a_normal;
     gl_Position = u_viewMatrix * a_position;
 }`
 
 const fSh = `
+precision mediump float;
+varying vec3 v_normal;
+
 void main() {
-    gl_FragColor = vec4(1., 0., 0., 1.);
-}  
-`
+    vec3 color = vec3(1., 0., 0.) +  v_normal;
+    gl_FragColor = vec4(color, 1.);
+}`
 
 
 /** CONST ***********************/
@@ -63,15 +69,13 @@ function prepareProgram(vSrc, fSrc) {
     const fShader = _createShader(gl.FRAGMENT_SHADER, fSrc)
     const program = _createProgram(vShader, fShader)
     const posLoc = gl.getAttribLocation(program, 'a_position')
+    const normLoc = gl.getAttribLocation(program, 'a_normal')
     const matrixLoc = gl.getUniformLocation(program, 'u_viewMatrix')
-    //const colorLoc = gl.getAttribLocation(program, 'a_color')
-    //const matLoc = gl.getUniformLocation(program, 'u_matrix')
     return {
         program,
         posLoc,
+        normLoc,
         matrixLoc,
-        // colorLoc,
-        // matLoc,
     }
 }
 
@@ -93,19 +97,19 @@ function clearCanvas(color) {
 
 function render({ 
     program, 
-    buffer, 
-    bufferLength, 
-    posLoc,
+    buffers, 
     matrix,
     matrixLoc, 
 }) {
     gl.useProgram(program)
-    gl.enableVertexAttribArray(posLoc)
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0)
+    for (let i = 0; i < buffers.length; ++i) {
+        const { loc, buffer } = buffers[i]
+        gl.enableVertexAttribArray(loc)
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+        gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0)
+    }
     gl.uniformMatrix4fv(matrixLoc, false, matrix)
-    //gl.uniformMatrix4fv(matrixLoc)
-    gl.drawArrays(gl.TRIANGLES, 0, bufferLength)
+    gl.drawArrays(gl.TRIANGLES, 0, buffers[0].bufferLength)
 }
 
 function prepareGL() {
@@ -121,15 +125,26 @@ function prepareGL() {
 
 
 /** GEOMETRY */
-const createPoints = () => new Float32Array([ 
-    -.1, 0, 0.,
-    .1, 0, 0.,
-    -.1, -.3, 0.,
+const createPoints = () => ({ 
+    points: new Float32Array([ 
+        -.1, 0, 0.,
+        .1, 0, 0.,
+        -.1, -.3, 0.,
 
-    .1, 0, 0.,
-    -.1, -.3, 0.,
-    .1, -.3, 0.,
-])
+        .1, 0, 0.,
+        -.1, -.3, 0.,
+        .1, -.3, 0.,
+    ]), 
+    normals: new Float32Array([
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+    ]),
+})
 
 
 
@@ -139,9 +154,16 @@ const OFFSET_X = .22, OFFSET_Y = .35
 
 function main() {
     const uGl = prepareGL()
-    const points = createPoints()
-    const { buffer, bufferLength } = uGl.createBuffer(points) 
-    const { program, posLoc, matrixLoc } = uGl.prepareProgram(vSh, fSh) 
+    const { points, normals } = createPoints()
+
+    const pointsBuffer = uGl.createBuffer(points) 
+    const normalsBuffer = uGl.createBuffer(normals) 
+
+    const { program, posLoc, normLoc, matrixLoc } = uGl.prepareProgram(vSh, fSh) 
+
+    pointsBuffer.loc = posLoc
+    normalsBuffer.loc = normLoc
+
     
     const update = d => {
         uGl.clearCanvas([0, 0, 0])
@@ -154,17 +176,11 @@ function main() {
             matrix = m4.mult(m4.move(x, y, 0), rotMatrix)
             uGl.render({
                 program,
-                buffer,
-                bufferLength,
-                posLoc,
+                buffers: [pointsBuffer, normalsBuffer],
                 matrix,
                 matrixLoc,
             })
-        }    
-
-
-        //let matrix = m4.rotX(Math.sin(d))
-
+        }   
     }
 
 
