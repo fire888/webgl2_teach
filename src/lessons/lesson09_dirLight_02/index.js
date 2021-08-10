@@ -6,14 +6,12 @@
 const vSh = `
 attribute vec4 a_position;
 attribute vec3 a_normal;
-attribute vec3 a_color;
 uniform mat4 u_viewMatrix;
+uniform mat4 u_lightMatrix;
 varying vec3 v_normal;
-varying vec3 v_color;
 
 void main() {
-    v_normal = mat3(u_viewMatrix) * a_normal;
-    v_color = a_color;
+    v_normal = (u_lightMatrix * vec4(a_normal, 1.)).xyz;
     gl_Position = u_viewMatrix * a_position;
 }`
 
@@ -23,13 +21,15 @@ void main() {
 const fSh = `
 precision mediump float;
 uniform vec3 u_reverseLightDirection;
+uniform vec3 v_color;
 varying vec3 v_normal;
-varying vec3 v_color;
+
 
 void main() {
-    vec3 normal = normalize(v_normal);
-    float light = dot(normal, u_reverseLightDirection);
-    vec3 color = v_color * normal + vec3(0., 0, 0.);
+    vec3 normal = v_normal;
+    float light = dot(normal, normalize(u_reverseLightDirection));
+    vec3 color = vec3(step(.5, light));
+    color = mix(color, v_color, v_color.r);
 
     gl_FragColor = vec4(color, 1.);
 }`
@@ -39,7 +39,7 @@ void main() {
 
 /** CONST ***********************/
 
-const { sin, cos, PI, min, max, floor } = Math
+const { sin, cos, PI, min, max, floor, round } = Math
 const PI2 = PI * 2
 
 /** GL **************************/
@@ -85,9 +85,10 @@ function prepareProgram(vSrc, fSrc) {
     const program = _createProgram(vShader, fShader)
     const posLoc = gl.getAttribLocation(program, 'a_position')
     const normLoc = gl.getAttribLocation(program, 'a_normal')
-    const colorLoc = gl.getAttribLocation(program, 'a_color')
+    const colorLoc = gl.getUniformLocation(program, 'v_color')
     const matrixLoc = gl.getUniformLocation(program, 'u_viewMatrix')
     const lightLoc = gl.getUniformLocation(program, 'u_reverseLightDirection')
+    const matrixLightLoc = gl.getUniformLocation(program, 'u_lightMatrix')
     return {
         program,
         posLoc,
@@ -95,6 +96,7 @@ function prepareProgram(vSrc, fSrc) {
         colorLoc,
         matrixLoc,
         lightLoc,
+        matrixLightLoc,
     }
 }
 
@@ -118,8 +120,13 @@ function render({
     program, 
     buffers, 
     matrix,
-    matrixLoc, 
+    matrixLoc,
+    color,
+    colorLoc,
+    light,
     lightLoc,
+    lightMatrix,
+    matrixLightLoc,
 }) {
     gl.useProgram(program)
     for (let i = 0; i < buffers.length; ++i) {
@@ -128,8 +135,9 @@ function render({
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0)
     }
-    const lM = m4.normalize([0.5, 0.7, 1])
-    gl.uniform3fv(lightLoc, lM)
+    gl.uniform3fv(colorLoc, color)
+    gl.uniform3fv(lightLoc, light)
+    gl.uniformMatrix4fv(matrixLightLoc, false, lightMatrix)
     gl.uniformMatrix4fv(matrixLoc, false, matrix)
     gl.drawArrays(gl.TRIANGLES, 0, buffers[0].bufferLength)
 }
@@ -268,14 +276,6 @@ const createPoints = () => ({
         0, -1, 0,
 
     ]),
-    colors: (function() {
-        const arr = []
-        for (let i = 0; i < 36; ++i) {
-            arr.push(.7, .7, .7)
-        }
-        const fArr = new Float32Array(arr)
-        return fArr 
-    })() 
 })
 
 
@@ -287,35 +287,53 @@ const COUNT_Y = 9
 
 function main() {
     const uGl = prepareGL()
-    const { points, normals, colors } = createPoints()
+    const { points, normals } = createPoints()
 
     const pointsBuffer = uGl.createBuffer(points) 
-    const normalsBuffer = uGl.createBuffer(normals) 
-    const colorsBuffer = uGl.createBuffer(colors) 
+    const normalsBuffer = uGl.createBuffer(normals)
 
-    const { program, posLoc, normLoc, colorLoc, matrixLoc, } = uGl.prepareProgram(vSh, fSh) 
+    const { program, posLoc, normLoc, colorLoc, matrixLoc, lightLoc, matrixLightLoc } = uGl.prepareProgram(vSh, fSh)
 
     pointsBuffer.loc = posLoc
     normalsBuffer.loc = normLoc
-    colorsBuffer.loc = colorLoc
 
+    const light = new Float32Array([1, 1, -1])
+    let color = new Float32Array([0, 0, 0])
     
     const update = d => {
         uGl.clearCanvas([0., 0., 0.])
 
         for (let i = 0; i < (COUNT_X * COUNT_Y); ++i) {
+
+
+            const halfCount = (COUNT_X * COUNT_Y  / 2)
+            const phase = (d * 5) % halfCount
+            const phase2 =((d - .5) * 5) % halfCount
+
+            if (i === 1) console.log(round(phase / i) - round( phase2 / i))
+
+            color[0] = round(phase / i) - round( phase2 / i)
+
             const x = (i % COUNT_X) * (2 / COUNT_X) - .9 
             const y = Math.floor(i / COUNT_Y) * (2 / COUNT_Y) - .9
             const z = Math.ceil(i % 2) * .5
 
             let rotMatrix = m4.rotY(Math.sin(d + (i / 25)) * PI2)
             rotMatrix = m4.mult(m4.rotX(Math.sin(d * .5 + (i / 25)) * PI2), rotMatrix)
-            matrix = m4.mult(m4.move(x, y, z), rotMatrix)
+            const lightMatrix = inverse(rotMatrix)
+
+            const matrix = m4.mult(m4.move(x, y, z), rotMatrix)
             uGl.render({
                 program,
-                buffers: [pointsBuffer, normalsBuffer, colorsBuffer],
+                buffers: [pointsBuffer, normalsBuffer],
                 matrix,
                 matrixLoc,
+                color,
+                colorLoc,
+                light,
+                lightLoc,
+                lightMatrix,
+                matrixLightLoc,
             })
         }   
     }
@@ -554,5 +572,92 @@ const m4 = {
         ];
     },
 }
+
+function inverse(m, dst) {
+    dst = dst || new Float32Array(16);
+    var m00 = m[0 * 4 + 0];
+    var m01 = m[0 * 4 + 1];
+    var m02 = m[0 * 4 + 2];
+    var m03 = m[0 * 4 + 3];
+    var m10 = m[1 * 4 + 0];
+    var m11 = m[1 * 4 + 1];
+    var m12 = m[1 * 4 + 2];
+    var m13 = m[1 * 4 + 3];
+    var m20 = m[2 * 4 + 0];
+    var m21 = m[2 * 4 + 1];
+    var m22 = m[2 * 4 + 2];
+    var m23 = m[2 * 4 + 3];
+    var m30 = m[3 * 4 + 0];
+    var m31 = m[3 * 4 + 1];
+    var m32 = m[3 * 4 + 2];
+    var m33 = m[3 * 4 + 3];
+    var tmp_0  = m22 * m33;
+    var tmp_1  = m32 * m23;
+    var tmp_2  = m12 * m33;
+    var tmp_3  = m32 * m13;
+    var tmp_4  = m12 * m23;
+    var tmp_5  = m22 * m13;
+    var tmp_6  = m02 * m33;
+    var tmp_7  = m32 * m03;
+    var tmp_8  = m02 * m23;
+    var tmp_9  = m22 * m03;
+    var tmp_10 = m02 * m13;
+    var tmp_11 = m12 * m03;
+    var tmp_12 = m20 * m31;
+    var tmp_13 = m30 * m21;
+    var tmp_14 = m10 * m31;
+    var tmp_15 = m30 * m11;
+    var tmp_16 = m10 * m21;
+    var tmp_17 = m20 * m11;
+    var tmp_18 = m00 * m31;
+    var tmp_19 = m30 * m01;
+    var tmp_20 = m00 * m21;
+    var tmp_21 = m20 * m01;
+    var tmp_22 = m00 * m11;
+    var tmp_23 = m10 * m01;
+
+    var t0 = (tmp_0 * m11 + tmp_3 * m21 + tmp_4 * m31) -
+        (tmp_1 * m11 + tmp_2 * m21 + tmp_5 * m31);
+    var t1 = (tmp_1 * m01 + tmp_6 * m21 + tmp_9 * m31) -
+        (tmp_0 * m01 + tmp_7 * m21 + tmp_8 * m31);
+    var t2 = (tmp_2 * m01 + tmp_7 * m11 + tmp_10 * m31) -
+        (tmp_3 * m01 + tmp_6 * m11 + tmp_11 * m31);
+    var t3 = (tmp_5 * m01 + tmp_8 * m11 + tmp_11 * m21) -
+        (tmp_4 * m01 + tmp_9 * m11 + tmp_10 * m21);
+
+    var d = 1.0 / (m00 * t0 + m10 * t1 + m20 * t2 + m30 * t3);
+
+    dst[0] = d * t0;
+    dst[1] = d * t1;
+    dst[2] = d * t2;
+    dst[3] = d * t3;
+    dst[4] = d * ((tmp_1 * m10 + tmp_2 * m20 + tmp_5 * m30) -
+        (tmp_0 * m10 + tmp_3 * m20 + tmp_4 * m30));
+    dst[5] = d * ((tmp_0 * m00 + tmp_7 * m20 + tmp_8 * m30) -
+        (tmp_1 * m00 + tmp_6 * m20 + tmp_9 * m30));
+    dst[6] = d * ((tmp_3 * m00 + tmp_6 * m10 + tmp_11 * m30) -
+        (tmp_2 * m00 + tmp_7 * m10 + tmp_10 * m30));
+    dst[7] = d * ((tmp_4 * m00 + tmp_9 * m10 + tmp_10 * m20) -
+        (tmp_5 * m00 + tmp_8 * m10 + tmp_11 * m20));
+    dst[8] = d * ((tmp_12 * m13 + tmp_15 * m23 + tmp_16 * m33) -
+        (tmp_13 * m13 + tmp_14 * m23 + tmp_17 * m33));
+    dst[9] = d * ((tmp_13 * m03 + tmp_18 * m23 + tmp_21 * m33) -
+        (tmp_12 * m03 + tmp_19 * m23 + tmp_20 * m33));
+    dst[10] = d * ((tmp_14 * m03 + tmp_19 * m13 + tmp_22 * m33) -
+        (tmp_15 * m03 + tmp_18 * m13 + tmp_23 * m33));
+    dst[11] = d * ((tmp_17 * m03 + tmp_20 * m13 + tmp_23 * m23) -
+        (tmp_16 * m03 + tmp_21 * m13 + tmp_22 * m23));
+    dst[12] = d * ((tmp_14 * m22 + tmp_17 * m32 + tmp_13 * m12) -
+        (tmp_16 * m32 + tmp_12 * m12 + tmp_15 * m22));
+    dst[13] = d * ((tmp_20 * m32 + tmp_12 * m02 + tmp_19 * m22) -
+        (tmp_18 * m22 + tmp_21 * m32 + tmp_13 * m02));
+    dst[14] = d * ((tmp_18 * m12 + tmp_23 * m32 + tmp_15 * m02) -
+        (tmp_22 * m32 + tmp_14 * m02 + tmp_19 * m12));
+    dst[15] = d * ((tmp_22 * m22 + tmp_16 * m02 + tmp_21 * m12) -
+        (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02));
+
+    return dst;
+}
+
 
 main()
