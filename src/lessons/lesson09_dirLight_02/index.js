@@ -306,13 +306,12 @@ function main() {
         for (let i = 0; i < (COUNT_X * COUNT_Y); ++i) {
 
 
-            const halfCount = (COUNT_X * COUNT_Y  / 2)
-            const phase = (d * 5) % halfCount
-            const phase2 =((d - .5) * 5) % halfCount
 
-            if (i === 1) console.log(round(phase / i) - round( phase2 / i))
+            const p = round((d * 5) % (COUNT_X * COUNT_Y / 2))
+            color[0] = round(p / (i - 1)) - round( p / (i + 1))
 
-            color[0] = round(phase / i) - round( phase2 / i)
+
+
 
             const x = (i % COUNT_X) * (2 / COUNT_X) - .9 
             const y = Math.floor(i / COUNT_Y) * (2 / COUNT_Y) - .9
