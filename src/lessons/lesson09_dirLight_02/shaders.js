@@ -25,11 +25,11 @@ uniform mat4 u_invRotMatrix;
 varying vec3 v_normal;
 
 void main() {
-    vec3 normal = mat3(u_invRotMatrix) * normalize(v_normal);
+    vec3 normal = mat3(u_invRotMatrix) * v_normal;
     normal = mat3(u_invRotMatrix) * normal;
     float light = dot(normal, u_reverseLightDirection);
-    vec3 color = mix(u_color, vec3(0., 0., 0.5), max(light, 0.)) + vec3(u_flash);
+    vec3 color = mix(u_color, vec3(0., 0., 0.5 + u_color.z), light);
 
     gl_FragColor = vec4(color, 1.);
-    //gl_FragColor = vec4( vec3(u_flash), 1.);
+    //gl_FragColor = vec4(vec3(u_flash), 1.);
 }`

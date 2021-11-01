@@ -41,7 +41,7 @@ function main() {
     let color = new Float32Array([1, 0, 0])
     
     const update = d => {
-        uGl.clearCanvas([0., 0., 0.])
+        uGl.clearCanvas([0., 0., 0.3])
 
         for (let i = 0; i < (COUNT_X * COUNT_Y); ++i) {
 
@@ -56,7 +56,43 @@ function main() {
 
             let invRotMatrix = m4.inverse(matrix)
 
-            //const uFlash = Math.sin(d % Math.PI)
+            if (
+                i === 10 ||
+                i === 11 ||
+                i === 12 ||
+                i === 13 ||
+                i === 14 ||
+                i === 15 ||
+                i === 16 ||
+
+                i === 19 ||
+                i === 28 ||
+                i === 37 ||
+                i === 46 ||
+                i === 55 ||
+                i === 64 ||
+
+
+                i === 25 ||
+                i === 34 ||
+                i === 43 ||
+                i === 52 ||
+                i === 61 ||
+                i === 70 ||
+
+                i === 65 ||
+                i === 66 ||
+                i === 67 ||
+                i === 68 ||
+                i === 69 ||
+
+                i === 40
+            ) {
+                color = new Float32Array([1, 2, 2])
+            } else {
+                color = new Float32Array([1, 0, 0])
+            }
+
 
             uGl.render({
                 program,
