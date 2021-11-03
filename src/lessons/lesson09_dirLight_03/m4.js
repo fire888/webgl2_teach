@@ -1,6 +1,3 @@
-
-
-
 /** MATH HELPERS ****************/
 
 export const m4 = {
@@ -267,4 +264,3 @@ export const m4 = {
         return dst;
     },
 }
-

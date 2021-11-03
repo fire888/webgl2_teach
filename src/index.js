@@ -27,7 +27,8 @@
 
 
 //import './lessons/lesson09_dirLight/'
-import './lessons/lesson09_dirLight_02/index'
+//import './lessons/lesson09_dirLight_02/index'
+import './lessons/lesson09_dirLight_03/index'
 
 
 
