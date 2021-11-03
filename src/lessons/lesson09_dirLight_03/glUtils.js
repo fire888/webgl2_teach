@@ -15,6 +15,7 @@ function _createGL() {
     return gl
 }
 
+
 function _createShader(type, src) {
     const sh = gl.createShader(type)
     gl.shaderSource(sh, src)
@@ -25,6 +26,7 @@ function _createShader(type, src) {
     }
     console.log('compile sh error')
 }
+
 
 function _createProgram(vSh, fSh) {
     const program = gl.createProgram()
@@ -38,12 +40,12 @@ function _createProgram(vSh, fSh) {
     console.log('program compile error')
 }
 
+
 function prepareProgram(vSrc, fSrc) {
     const vShader = _createShader(gl.VERTEX_SHADER, vSrc)
     const fShader = _createShader(gl.FRAGMENT_SHADER, fSrc)
     program = _createProgram(vShader, fShader)
 }
-
 
 
 function createBufferByData(data) {
@@ -76,13 +78,12 @@ function clearCanvas(color) {
 
 
 function render(attributes, uniforms) {
-
     gl.useProgram(program)
 
     let bufferLen = null
 
     for (let key in attributes) {
-        const { buffer, bufferLength, location, name, size, type } = attributes[key]
+        const { buffer, bufferLength, location, size, type } = attributes[key]
         gl.enableVertexAttribArray(location)
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.vertexAttribPointer(location, size, gl[type], false, 0, 0)
@@ -106,9 +107,9 @@ export function prepareGL() {
     gl = _createGL()
 
     return {
+        prepareProgram,
         createBufferByData,
         getUniformLocation,
-        prepareProgram,
         clearCanvas,
         render,
     }

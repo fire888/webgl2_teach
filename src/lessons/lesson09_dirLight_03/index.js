@@ -5,7 +5,9 @@ import { prepareGL } from './glUtils'
 import { createPoints } from './createGeom'
 import { m4 } from "./m4";
 
+
 const { points, normals } = createPoints()
+
 
 const attributes = {
     vertices: {
@@ -24,10 +26,9 @@ const attributes = {
         size: 3,
         type: 'FLOAT',
         dataForBuffer: normals,
+        buffer: null,
     },
 }
-
-
 
 
 const uniforms = {
@@ -82,6 +83,7 @@ const COUNT_Y = 9
 function main() {
     const uGl = prepareGL()
     uGl.prepareProgram(vSh, fSh)
+
 
      for (let key in attributes) {
         const { location, buffer, bufferLength } = uGl.createBufferByData(attributes[key])
