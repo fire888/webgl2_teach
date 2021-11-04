@@ -94,7 +94,7 @@ export function prepareGL() {
     }
 
 
-    function render(uniforms) {
+    function setUniforms(uniforms) {
         for (let key in uniforms) {
             const { execSetVal, val, location } = uniforms[key]
             if (execSetVal === 'uniformMatrix4fv') {
@@ -103,7 +103,10 @@ export function prepareGL() {
                 gl[execSetVal](location, val)
             }
         }
+    }
 
+
+    function render () {
         gl.drawArrays(gl.TRIANGLES, 0, bufferLen)
     }
 
@@ -113,6 +116,7 @@ export function prepareGL() {
         getUniformLocation,
         prepareRender,
         setAttributes,
+        setUniforms,
         render,
     }
 }
