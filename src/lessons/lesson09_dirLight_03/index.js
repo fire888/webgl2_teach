@@ -10,7 +10,7 @@ const { points, normals, colors } = createPoints()
 
 
 const attributes = {
-    vertices: {
+    'a_position': {
         name: 'a_position',
         getLocation: 'getAttribLocation',
         location: null,
@@ -19,7 +19,7 @@ const attributes = {
         dataForBuffer: points,
         buffer: null,
     },
-    colors: {
+    'a_color': {
         name: 'a_color',
         getLocation: 'getAttribLocation',
         location: null,
@@ -28,25 +28,39 @@ const attributes = {
         dataForBuffer: colors,
         buffer: null,
     },
-    normals: {
+    'a_normal': {
         name: 'a_normal',
         getLocation: 'getAttribLocation',
         location: null,
         size: 3,
         type: 'FLOAT',
-        dataForBuffer: colors,
+        dataForBuffer: normals,
         buffer: null,
     },
 }
 
 const uniforms = {
-    viewMatrix: {
-        name: 'u_matrix',
+    'u_worldViewProjection': {
+        name: 'u_worldViewProjection',
         getLocation: 'getUniformLocation',
         location: null,
         execSetVal: 'uniformMatrix4fv',
         val: null,
     },
+    'u_world': {
+        name: 'u_world',
+        getLocation: 'getUniformLocation',
+        location: null,
+        execSetVal: 'uniformMatrix4fv',
+        val: null,
+    },
+    'u_reverseLightDirection': {
+        name: 'u_reverseLightDirection',
+        getLocation: 'getUniformLocation',
+        location: null,
+        execSetVal: 'uniform3fv',
+        val: null,
+    }
 }
 
 
@@ -73,30 +87,36 @@ function main() {
     }
 
 
+    uniforms['u_reverseLightDirection'].val = [-1., 3., 2.]
 
+    const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
 
-    const projectionMatrix = m4.persp(1.8, 1, .01, 50)
+    // Compute the camera's matrix
+    var camera = [0, .5, 1];
+    var target = [0, 0, 0];
+    var up = [0, 1, 0];
+    var cameraMatrix = m4.lookAt(camera, target, up);
+
+    var viewMatrix = m4.inverse(cameraMatrix);
+    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
 
     // TODO: CHECK GEOM NORMALS
     const update = d => {
         uGl.prepareRender([0., 0., 0.3])
 
-        let cameraMatrix = m4.rotY(d);
-        cameraMatrix = m4.mult(cameraMatrix, m4.rotX(d * 3))
-        cameraMatrix = m4.translate(cameraMatrix, 0, 0, -2);
-        const viewMatrix = m4.inverse(cameraMatrix);
-        const viewProjectionMatrix = m4.mult(projectionMatrix, viewMatrix);
-
+        var worldMatrix = m4.yRotation(d * 10);
+        var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
 
 
         for (let i = 0; i , i < X.length; ++i) {
-            for (let j = 0; j < Y.length; ++j) {
-                const matrix = m4.translate(viewProjectionMatrix, X[i], Y[j], 0)
-                uniforms['viewMatrix'].val = matrix
+             for (let j = 0; j < Y.length; ++j) {
+                uniforms['u_worldViewProjection'].val = worldViewProjectionMatrix ///m4.translate(worldViewProjectionMatrix, X[i], Y[j], 0)worldMatrix//m4.translate(worldViewProjectionMatrix, X[i], Y[j], -5)
+                uniforms['u_world'].val = worldMatrix
 
                 uGl.setUniforms(uniforms)
                 uGl.render()
-            }
+             }
         }
     }
 
