@@ -5,8 +5,8 @@ const XL = -.3
 const XR = .3
 const YB = -.3
 const YT = .3
-const ZF = -.3
-const ZB = .3
+const ZF = .3
+const ZB = -.3
 
 export const createPoints = () => ({
     points: new Float32Array([

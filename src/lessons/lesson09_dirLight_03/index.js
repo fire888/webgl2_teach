@@ -92,7 +92,7 @@ function main() {
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
 
     // Compute the camera's matrix
-    var camera = [0, .5, 1];
+    var camera = [0, .5, 2];
     var target = [0, 0, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(camera, target, up);
@@ -111,7 +111,7 @@ function main() {
 
         for (let i = 0; i , i < X.length; ++i) {
              for (let j = 0; j < Y.length; ++j) {
-                uniforms['u_worldViewProjection'].val = worldViewProjectionMatrix ///m4.translate(worldViewProjectionMatrix, X[i], Y[j], 0)worldMatrix//m4.translate(worldViewProjectionMatrix, X[i], Y[j], -5)
+                uniforms['u_worldViewProjection'].val = m4.translate(worldViewProjectionMatrix, X[i], Y[j], 0)
                 uniforms['u_world'].val = worldMatrix
 
                 uGl.setUniforms(uniforms)
