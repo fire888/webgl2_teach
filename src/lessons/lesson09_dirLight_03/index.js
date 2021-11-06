@@ -6,7 +6,7 @@ import { createPoints } from './createGeom'
 import { m4 } from "./m4";
 
 
-const { points, normals, colors } = createPoints()
+const { points, normals } = createPoints()
 
 
 const attributes = {
@@ -17,15 +17,6 @@ const attributes = {
         size: 3,
         type: 'FLOAT',
         dataForBuffer: points,
-        buffer: null,
-    },
-    'a_color': {
-        name: 'a_color',
-        getLocation: 'getAttribLocation',
-        location: null,
-        size: 3,
-        type: 'FLOAT',
-        dataForBuffer: colors,
         buffer: null,
     },
     'a_normal': {
@@ -67,15 +58,24 @@ const uniforms = {
         location: null,
         execSetVal: 'uniform3fv',
         val: null,
-    }
+    },
+    'u_color': {
+        name: 'u_color',
+        getLocation: 'getUniformLocation',
+        location: null,
+        execSetVal: 'uniform3fv',
+        val: null,
+    },
 }
 
 
-const { PI } = Math
-const PI2 = PI * 2
+const { sin } = Math
 
-const X = [-.82, 0, .82]
-const Y = [-.82, 0, .82]
+const itemsXs = []
+for (let i = -4; i < 4; i+=.1) {
+    itemsXs.push(i)
+}
+console.log(itemsXs.length)
 
 
 function main() {
@@ -94,57 +94,46 @@ function main() {
     }
 
 
-    uniforms['u_reverseLightDirection'].val = [-1., 3., -2.]
+    uniforms['u_reverseLightDirection'].val = [0., 2, 0]
+    uniforms['u_color'].val = [1., 1., 1.]
+
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
-
-    // Compute the camera's matrix
-    var camera = [0, .5, 2];
-    var target = [0, 0, 0];
+    var camera = [0, 5, 3];
+    var target = [0, -1, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(camera, target, up);
-
     var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
 
     const update = d => {
-        uGl.prepareRender([0., 0., 0.3])
+        const dark = ((sin(d / 2) + .5) * 3)
+        uGl.prepareRender([dark, dark, dark])
 
-        var worldMatrix = m4.yRotation(0);
+        var worldMatrix = m4.yRotation(d / 3);
         var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
 
 
-        for (let i = 0; i , i < X.length; ++i) {
-            for (let j = 0; j < Y.length; ++j) {
+        for (let i = 0; i , i < itemsXs.length; ++i) {
                 const move = m4.multiply(
                     worldViewProjectionMatrix,
                     [
                         1, 0, 0, 0,
                         0, 1, 0, 0,
                         0, 0, 1, 0,
-                        X[i], X[j], 0, 1,
+                        itemsXs[i], 0, 0, 1,
                     ]
                 )
-                const c = Math.cos(d * 10);
-                const s = Math.sin(d * 10);
-                const rotY = m4.multiply(
+                const angle = sin(d  + (i / 10))
+                const c = Math.cos(angle);
+                const s = Math.sin(angle);
+                const rotX = m4.multiply(
                     move,
                     [
-                        c, 0, -s, 0,
-                        0, 1, 0, 0,
-                        s, 0, c, 0,
-                        0, 0, 0, 1,
-                    ],
-                )
-                const c1 = Math.cos(d * 5);
-                const s1 = Math.sin(d * 5);
-                const rotX = m4.multiply(
-                    rotY,
-                    [
                         1, 0, 0, 0,
-                        0, c1, s1, 0,
-                        0, -s1, c1, 0,
+                        0, c, s, 0,
+                        0, -s, c, 0,
                         0, 0, 0, 1,
                     ],
                 )
@@ -155,13 +144,12 @@ function main() {
 
                 uGl.setUniforms(uniforms)
                 uGl.render()
-            }
         }
     }
 
     let d = 0
     const animate = () => {
-        d += 0.001
+        d += 0.015
         update(d)
         requestAnimationFrame(animate)
     }
