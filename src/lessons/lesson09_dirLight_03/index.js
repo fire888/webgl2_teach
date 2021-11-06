@@ -75,7 +75,7 @@ const itemsXs = []
 for (let i = -4; i < 4; i+=.1) {
     itemsXs.push(i)
 }
-console.log(itemsXs.length)
+
 
 
 function main() {
@@ -149,7 +149,7 @@ function main() {
 
     let d = 0
     const animate = () => {
-        d += 0.015
+        d += 0.05
         update(d)
         requestAnimationFrame(animate)
     }
