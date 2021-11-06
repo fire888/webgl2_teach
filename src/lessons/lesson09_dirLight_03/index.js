@@ -1,6 +1,6 @@
 /** https://webglfundamentals.org/webgl/lessons/ru/webgl-3d-lighting-directional.html */
 
-import { vSh, fSh, easyShaderF, easyShaderV } from './shaders'
+import { easyShaderF, easyShaderV } from './shaders'
 import { prepareGL } from './glUtils'
 import { createPoints } from './createGeom'
 import { m4 } from "./m4";
@@ -54,6 +54,13 @@ const uniforms = {
         execSetVal: 'uniformMatrix4fv',
         val: null,
     },
+    'u_transformItemMatrix': {
+        name: 'u_transformItemMatrix',
+        getLocation: 'getUniformLocation',
+        location: null,
+        execSetVal: 'uniformMatrix4fv',
+        val: null,
+    },
     'u_reverseLightDirection': {
         name: 'u_reverseLightDirection',
         getLocation: 'getUniformLocation',
@@ -87,7 +94,7 @@ function main() {
     }
 
 
-    uniforms['u_reverseLightDirection'].val = [-1., 3., 2.]
+    uniforms['u_reverseLightDirection'].val = [-1., 3., -2.]
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
 
@@ -101,22 +108,54 @@ function main() {
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
 
-    // TODO: CHECK GEOM NORMALS
     const update = d => {
         uGl.prepareRender([0., 0., 0.3])
 
-        var worldMatrix = m4.yRotation(d * 10);
+        var worldMatrix = m4.yRotation(0);
         var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
 
 
         for (let i = 0; i , i < X.length; ++i) {
-             for (let j = 0; j < Y.length; ++j) {
-                uniforms['u_worldViewProjection'].val = m4.translate(worldViewProjectionMatrix, X[i], Y[j], 0)
+            for (let j = 0; j < Y.length; ++j) {
+                const move = m4.multiply(
+                    worldViewProjectionMatrix,
+                    [
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        X[i], X[j], 0, 1,
+                    ]
+                )
+                const c = Math.cos(d * 10);
+                const s = Math.sin(d * 10);
+                const rotY = m4.multiply(
+                    move,
+                    [
+                        c, 0, -s, 0,
+                        0, 1, 0, 0,
+                        s, 0, c, 0,
+                        0, 0, 0, 1,
+                    ],
+                )
+                const c1 = Math.cos(d * 5);
+                const s1 = Math.sin(d * 5);
+                const rotX = m4.multiply(
+                    rotY,
+                    [
+                        1, 0, 0, 0,
+                        0, c1, s1, 0,
+                        0, -s1, c1, 0,
+                        0, 0, 0, 1,
+                    ],
+                )
+
+                uniforms['u_worldViewProjection'].val = worldViewProjectionMatrix
                 uniforms['u_world'].val = worldMatrix
+                uniforms['u_transformItemMatrix'].val = rotX
 
                 uGl.setUniforms(uniforms)
                 uGl.render()
-             }
+            }
         }
     }
 
