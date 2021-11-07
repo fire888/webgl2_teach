@@ -28,10 +28,11 @@
 
 //import './lessons/lesson09_dirLight/'
 //import './lessons/lesson09_dirLight_02/index'
-import './lessons/lesson09_dirLight_03/index'
-
-
+//import './lessons/lesson09_dirLight_03/index'
 
 
 //import './lessons/lesson10_pointLight/'
+import './lessons/lesson10_pointLight_02/'
+
+
 //import './lessons/lesson12_lathe/'
