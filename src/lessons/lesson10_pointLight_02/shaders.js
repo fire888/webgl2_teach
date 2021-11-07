@@ -5,7 +5,6 @@ attribute vec3 a_normal;
 
 uniform mat4 u_world;
 uniform mat4 u_worldViewProjection;
-uniform vec3 u_lightWorldPosition;
 
 varying vec3 v_normal;
 varying vec3 v_surfaceToLight;
@@ -15,8 +14,9 @@ void main() {
 
   v_normal = mat3(u_worldViewProjection) * a_normal;
 
-  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
-  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+  vec3 surfaceWorldPosition = (u_worldViewProjection * a_position).xyz;
+  vec3 lightPos = vec3(0., 1., -1.);
+  v_surfaceToLight = lightPos - surfaceWorldPosition;
 }
 `
 

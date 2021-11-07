@@ -31,13 +31,6 @@ const attributes = {
 }
 
 const uniforms = {
-    'u_world': {
-        name: 'u_world',
-        getLocation: 'getUniformLocation',
-        location: null,
-        execSetVal: 'uniformMatrix4fv',
-        val: m4.yRotation(0),
-    },
     'u_worldViewProjection': {
         name: 'u_worldViewProjection',
         getLocation: 'getUniformLocation',
@@ -45,13 +38,13 @@ const uniforms = {
         execSetVal: 'uniformMatrix4fv',
         val: null,
     },
-    'u_lightWorldPosition': {
-        name: 'u_color',
-        getLocation: 'getUniformLocation',
-        location: null,
-        execSetVal: 'uniform3fv',
-        val: [0., 5., -3.],
-    },
+    // 'u_lightWorldPosition': {
+    //     name: 'u_color',
+    //     getLocation: 'getUniformLocation',
+    //     location: null,
+    //     execSetVal: 'uniform3fv',
+    //     val: [0, 0, 0],
+    // },
     'u_color': {
         name: 'u_color',
         getLocation: 'getUniformLocation',
@@ -84,8 +77,8 @@ function main() {
 
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
-    var camera = [0, 5, 3];
-    var target = [0, -1, 0];
+    var camera = [0, 0, 5];
+    var target = [0, 0, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(camera, target, up);
     var viewMatrix = m4.inverse(cameraMatrix);
@@ -96,7 +89,9 @@ function main() {
         const dark = .5
         uGl.prepareRender([dark, dark, dark])
 
-        var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, uniforms['u_world'].val);
+        const worldYRot = m4.yRotation(d / 5)
+        const worldYRotXRot = m4.zRotate(worldYRot, 0)
+        const worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldYRotXRot);
 
 
         uniforms['u_worldViewProjection'].val = worldViewProjectionMatrix
