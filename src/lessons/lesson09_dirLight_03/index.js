@@ -57,14 +57,14 @@ const uniforms = {
         getLocation: 'getUniformLocation',
         location: null,
         execSetVal: 'uniform3fv',
-        val: null,
+        val: [0., 2., 0.],
     },
     'u_color': {
         name: 'u_color',
         getLocation: 'getUniformLocation',
         location: null,
         execSetVal: 'uniform3fv',
-        val: null,
+        val: [1., 1., 1.],
     },
 }
 
@@ -92,10 +92,6 @@ function main() {
         const { location } = uGl.getUniformLocation(uniforms[key])
         Object.assign(uniforms[key], { location })
     }
-
-
-    uniforms['u_reverseLightDirection'].val = [0., 2, 0]
-    uniforms['u_color'].val = [1., 1., 1.]
 
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)

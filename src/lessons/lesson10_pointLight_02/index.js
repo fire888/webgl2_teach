@@ -64,10 +64,6 @@ const uniforms = {
 
 const { sin } = Math
 
-const itemsXs = [0]
-// for (let i = -4; i < 4; i+=.1) {
-//     itemsXs.push(i)
-// }
 
 
 
