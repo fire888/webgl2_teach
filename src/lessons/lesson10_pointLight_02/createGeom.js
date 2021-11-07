@@ -7,14 +7,14 @@ const dataElements = [
     {
         offset: [-.9, .9, .9],
         isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: true, isRight: false,
-        w: .1, h: .1, t: .1,
+        w: .1, h: .2, t: .1,
     },
 
     // CORNER RIGHT TOP
     {
         offset: [.9, .9, .9],
         isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: false, isRight: true,
-        w: .1, h: .1, t: .1,
+        w: .1, h: .2, t: .1,
     },
 
     // CORNER LEFT BOTTOM
@@ -35,7 +35,7 @@ const dataElements = [
     {
         offset: [0, .9, .9],
         isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
-        w: 1.7, h: .1, t: .1,
+        w: 1.7, h: .2, t: .1,
     },
     // BOTTOM
     {
@@ -63,14 +63,14 @@ const dataElements = [
     {
         offset: [-.9, .9, -.9],
         isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: true, isRight: false,
-        w: .1, h: .1, t: .1,
+        w: .1, h: .2, t: .1,
     },
 
     // CORNER RIGHT TOP
     {
         offset: [.9, .9, -.9],
         isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: false, isRight: true,
-        w: .1, h: .1, t: .1,
+        w: .1, h: .2, t: .1,
     },
 
     // CORNER LEFT BOTTOM
@@ -91,7 +91,7 @@ const dataElements = [
     {
         offset: [0, .9, -.9],
         isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
-        w: 1.7, h: .1, t: .1,
+        w: 1.7, h: .2, t: .1,
     },
     // BOTTOM
     {
@@ -118,13 +118,13 @@ const dataElements = [
     {
         offset: [-.9, .9, 0],
         isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
-        w: .1, h: .1, t: 1.7,
+        w: .1, h: .2, t: 1.7,
     },
     // RIGHT TOP
     {
         offset: [.9, .9, 0],
         isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
-        w: .1, h: .1, t: 1.7,
+        w: .1, h: .2, t: 1.7,
     },
     // LEFT BOTTOM
     {

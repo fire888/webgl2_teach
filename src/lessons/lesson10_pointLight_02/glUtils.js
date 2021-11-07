@@ -13,6 +13,11 @@ export function prepareGL() {
         document.body.appendChild(c)
         document.body.style.textAlign = 'center'
         const gl = c.getContext('webgl')
+        window.addEventListener('resize', () => {
+            c.width =
+                c.height =
+                    min(window.innerHeight, window.innerWidth)
+        })
         console.log(gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
         return gl
     }
