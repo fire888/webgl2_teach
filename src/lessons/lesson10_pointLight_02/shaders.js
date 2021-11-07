@@ -15,7 +15,7 @@ void main() {
   v_normal = mat3(u_worldViewProjection) * a_normal;
 
   vec3 surfaceWorldPosition = (u_worldViewProjection * a_position).xyz;
-  vec3 lightPos = vec3(0., 1., -1.);
+  vec3 lightPos = vec3(0., 0., 3.);
   v_surfaceToLight = lightPos - surfaceWorldPosition;
 }
 `
@@ -32,7 +32,7 @@ void main() {
     vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
     float light = dot(normal, surfaceToLightDirection);
     
-    gl_FragColor = vec4(u_color * light, 1.);
+    gl_FragColor = vec4(u_color * light, 1.) * vec4(0.6, 1.1, 0.5, 1.);
     //gl_FragColor = vec4(1.);
 }
 `

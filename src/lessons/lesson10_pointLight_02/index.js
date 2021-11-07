@@ -9,6 +9,7 @@ import { m4 } from "./m4";
 const { points, normals } = createPoints()
 
 
+
 const attributes = {
     'a_position': {
         name: 'a_position',
@@ -38,13 +39,6 @@ const uniforms = {
         execSetVal: 'uniformMatrix4fv',
         val: null,
     },
-    // 'u_lightWorldPosition': {
-    //     name: 'u_color',
-    //     getLocation: 'getUniformLocation',
-    //     location: null,
-    //     execSetVal: 'uniform3fv',
-    //     val: [0, 0, 0],
-    // },
     'u_color': {
         name: 'u_color',
         getLocation: 'getUniformLocation',
@@ -86,7 +80,7 @@ function main() {
 
 
     const update = d => {
-        const dark = .5
+        const dark = 0
         uGl.prepareRender([dark, dark, dark])
 
         const worldYRot = m4.yRotation(d / 5)

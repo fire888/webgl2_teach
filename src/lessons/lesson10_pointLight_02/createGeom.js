@@ -1,122 +1,343 @@
 
-/** GEOMETRY */
 
-const XL = -2//1.5
-const XR = 2//1.5
-const YB = -2//1.5
-const YT = 2//1.5
-const ZF = 2//1.5
-const ZB = -2//1.5
+const dataElements = [
+    /// FRONT SIDE
+
+    // CORNER LEFT TOP
+    {
+        offset: [-.9, .9, .9],
+        isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: true, isRight: false,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER RIGHT TOP
+    {
+        offset: [.9, .9, .9],
+        isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: false, isRight: true,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER LEFT BOTTOM
+    {
+        offset: [-.9, -.9, .9],
+        isFront: true, isBack: false, isTop: false, isBottom: true, isLeft: true, isRight: false,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER RIGHT BOTTOM
+    {
+        offset: [.9, -.9, .9],
+        isFront: true, isBack: false, isTop: false, isBottom: true, isLeft: false, isRight: true,
+        w: .1, h: .1, t: .1,
+    },
+
+    // TOP
+    {
+        offset: [0, .9, .9],
+        isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
+        w: 1.7, h: .1, t: .1,
+    },
+    // BOTTOM
+    {
+        offset: [0, -.9, .9],
+        isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
+        w: 1.7, h: .1, t: .1,
+    },
+    // LEFT
+    {
+        offset: [-.9, 0, .9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: 1.7, t: .1,
+    },
+    // RIGHT
+    {
+        offset: [.9, 0, .9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: 1.7, t: .1,
+    },
+
+    ////////////// BACK SIDE
+
+
+    // CORNER LEFT TOP
+    {
+        offset: [-.9, .9, -.9],
+        isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: true, isRight: false,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER RIGHT TOP
+    {
+        offset: [.9, .9, -.9],
+        isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: false, isRight: true,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER LEFT BOTTOM
+    {
+        offset: [-.9, -.9, -.9],
+        isFront: false, isBack: true, isTop: false, isBottom: true, isLeft: true, isRight: false,
+        w: .1, h: .1, t: .1,
+    },
+
+    // CORNER RIGHT BOTTOM
+    {
+        offset: [.9, -.9, -.9],
+        isFront: false, isBack: true, isTop: false, isBottom: true, isLeft: false, isRight: true,
+        w: .1, h: .1, t: .1,
+    },
+
+    // TOP
+    {
+        offset: [0, .9, -.9],
+        isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
+        w: 1.7, h: .1, t: .1,
+    },
+    // BOTTOM
+    {
+        offset: [0, -.9, -.9],
+        isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
+        w: 1.7, h: .1, t: .1,
+    },
+    // LEFT
+    {
+        offset: [-.9, 0, -.9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: 1.7, t: .1,
+    },
+    // RIGHT
+    {
+        offset: [.9, 0, -.9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: 1.7, t: .1,
+    },
+
+    //////////////////////////////////////// CONNECT
+
+    // LEFT TOP
+    {
+        offset: [-.9, .9, 0],
+        isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
+        w: .1, h: .1, t: 1.7,
+    },
+    // RIGHT TOP
+    {
+        offset: [.9, .9, 0],
+        isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
+        w: .1, h: .1, t: 1.7,
+    },
+    // LEFT BOTTOM
+    {
+        offset: [-.9, -.9, 0],
+        isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
+        w: .1, h: .1, t: 1.7,
+    },
+    // RIGHT BOTTOM
+    {
+        offset: [.9, -.9, 0],
+        isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
+        w: .1, h: .1, t: 1.7,
+    },
+]
+
+const createPointsFromData = data => {
+    const arrPoints = []
+    const arrNormals = []
+
+
+    for (let i = 0; i < data.length; i++) {
+        const {
+            offset,
+            isFront, isBack, isTop, isBottom, isLeft, isRight,
+            w, h, t,
+        } = data[i]
+
+        const hW = w / 2
+        const hH = h / 2
+        const hT = t / 2
+
+        if (isFront) {
+            arrPoints.push(
+                offset[0] - hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] + hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] + hT,
+
+                offset[0] + hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] + hT,
+            )
+
+            arrNormals.push(
+                0, 0, 1,
+                0, 0, 1,
+                0, 0, 1,
+
+                0, 0, 1,
+                0, 0, 1,
+                0, 0, 1,
+            )
+        }
+
+        if (isBack) {
+            arrPoints.push(
+                offset[0] + hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] - hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] - hT,
+
+                offset[0] - hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] - hT,
+            )
+
+            arrNormals.push(
+                0, 0, -1,
+                0, 0, -1,
+                0, 0, -1,
+
+                0, 0, -1,
+                0, 0, -1,
+                0, 0, -1,
+            )
+        }
+
+        if (isTop) {
+            arrPoints.push(
+                offset[0] - hW,     offset[1] + hH,     offset[2] + hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] - hT,
+
+                offset[0] + hW,     offset[1] + hH,     offset[2] + hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] - hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] - hT,
+            )
+
+            arrNormals.push(
+                0, 1, 0,
+                0, 1, 0,
+                0, 1, 0,
+
+                0, 1, 0,
+                0, 1, 0,
+                0, 1, 0,
+            )
+        }
+
+
+        if (isBottom) {
+            arrPoints.push(
+                offset[0] - hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] - hW,     offset[1] - hH,     offset[2] + hT,
+
+                offset[0] + hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] - hH,     offset[2] + hT,
+            )
+
+            arrNormals.push(
+                0, -1, 0,
+                0, -1, 0,
+                0, -1, 0,
+
+                0, -1, 0,
+                0, -1, 0,
+                0, -1, 0,
+            )
+        }
+
+
+        if (isLeft) {
+            arrPoints.push(
+                offset[0] - hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] - hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] - hT,
+
+                offset[0] - hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] + hT,
+                offset[0] - hW,     offset[1] + hH,     offset[2] - hT,
+            )
+
+            arrNormals.push(
+                -1, 0, 0,
+                -1, 0, 0,
+                -1, 0, 0,
+
+                -1, 0, 0,
+                -1, 0, 0,
+                -1, 0, 0,
+            )
+        }
+
+
+        if (isRight) {
+            arrPoints.push(
+                offset[0] + hW,     offset[1] - hH,     offset[2] + hT,
+                offset[0] + hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] + hT,
+
+                offset[0] + hW,     offset[1] - hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] - hT,
+                offset[0] + hW,     offset[1] + hH,     offset[2] + hT,
+            )
+
+            arrNormals.push(
+                1, 0, 0,
+                1, 0, 0,
+                1, 0, 0,
+
+                1, 0, 0,
+                1, 0, 0,
+                1, 0, 0,
+            )
+        }
+    }
+
+    return {
+        points: arrPoints,
+        normals: arrNormals,
+    }
+}
+
+/** main ***********************/
+
+const poses = []
+for (let i = -4.9; i < 5; i+=2.3) {
+    for (let j = -4.5; j < 6; j+=2.3) {
+        for (let k = -4.5; k < 6; k+=2.3) {
+            poses.push([i, j, k])
+        }
+    }
+}
+
+let arrPoints = []
+let arrNormals = []
+
+const createBox = pos => {
+    const arr = []
+    for (let i = 0; i < dataElements.length; ++i) {
+        arr.push({ ...dataElements[i] })
+        arr[i].offset = [
+            dataElements[i].offset[0] + pos[0],
+            dataElements[i].offset[1] + pos[1],
+            dataElements[i].offset[2] + pos[2],
+        ]
+    }
+
+    const { points, normals } = createPointsFromData(arr)
+    arrPoints = arrPoints.concat(points)
+    arrNormals = arrNormals.concat(normals)
+}
+
+
+for (let i = 0; i < poses.length; i++) {
+    createBox(poses[i])
+}
+
+
+
 
 export const createPoints = () => ({
-    points: new Float32Array([
-        // FRONT
-        XL, YB, ZF,
-        XR, YB, ZF,
-        XL, YT, ZF,
-
-        XR, YB, ZF,
-        XR, YT, ZF,
-        XL, YT, ZF,
-        // BACK
-        XR, YB, ZB,
-        XL, YB, ZB,
-        XR, YT, ZB,
-
-        XL, YB, ZB,
-        XL, YT, ZB,
-        XR, YT, ZB,
-
-        // // LEFT
-        XL, YB, ZB,
-        XL, YB, ZF,
-        XL, YT, ZB,
-
-        XL, YB, ZF,
-        XL, YT, ZF,
-        XL, YT, ZB,
-
-        // // RIGHT
-        XR, YB, ZF,
-        XR, YB, ZB,
-        XR, YT, ZF,
-        //
-        XR, YB, ZB,
-        XR, YT, ZB,
-        XR, YT, ZF,
-
-        // BOTTOM
-        XL, YB, ZB,
-        XR, YB, ZB,
-        XL, YB, ZF,
-        //
-        XR, YB, ZB,
-        XR, YB, ZF,
-        XL, YB, ZF,
-        // //
-        // TOP
-        XL, YT, ZF,
-        XR, YT, ZF,
-        XL, YT, ZB,
-        //
-        XR, YT, ZF,
-        XR, YT, ZB,
-        XL, YT, ZB,
-    ]),
-
-    normals: new Float32Array([
-        // FRONT
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-
-        // BACK
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1,
-
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1,
-
-        // LEFT
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-
-        // RIGHT
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-
-        // BOTTOM
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
-
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
-
-        // TOP
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
-
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
-    ]),
+    points: new Float32Array(arrPoints),
+    normals: new Float32Array(arrNormals),
 })
+
