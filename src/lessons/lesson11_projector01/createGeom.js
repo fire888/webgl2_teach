@@ -14,16 +14,6 @@ for (let i = 0; i < nums; i++) {
         sin(i / nums * PI2) * offset1,             cos(i / nums * PI2) * offset1,              0,
         sin(i / nums * PI2) * (offset1 + offset2), cos(i / nums * PI2) * (offset1 + offset2),  0,
     )
-
-    if (i % 4 === 0) {
-        arrPoses.push(
-            sin(i / nums * PI2) * (offset1 + offset2), cos(i / nums * PI2) * (offset1 + offset2),  0,
-            sin(i / nums * PI2) * (offset1 + offset2 + offset3), cos(i / nums * PI2) * (offset1 + offset2 + offset3),  0,
-
-            sin((i + 1) / nums * PI2) * (offset1 + offset2), cos((i + 1) / nums * PI2) * (offset1 + offset2),  0,
-            sin((i + 1) / nums * PI2) * (offset1 + offset2 + offset3), cos((i + 1) / nums * PI2) * (offset1 + offset2 + offset3),  0,
-        )
-    }
 }
 
 const arrPosesGeom = []
