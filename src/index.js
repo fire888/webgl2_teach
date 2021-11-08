@@ -32,7 +32,10 @@
 
 
 //import './lessons/lesson10_pointLight/'
-import './lessons/lesson10_pointLight_02/'
+//import './lessons/lesson10_pointLight_02/'
+
+
+import './lessons/lesson11_projector01'
 
 
 //import './lessons/lesson12_lathe/'
