@@ -1,20 +1,63 @@
 
 
 const dataElements = [
+    // TOP CONNECTOR FRONT LEFT
+    {
+        offset: [-.9, 1.15, .9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: .4, t: .1,
+    },
+
+    // TOP CONNECTOR FRONT RIGHT
+    {
+        offset: [.9, 1.15, .9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: .4, t: .1,
+    },
+    // TOP CONNECTOR BACK LEFT
+    {
+        offset: [-.9, 1.15, -.9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: .4, t: .1,
+    },
+
+    // TOP CONNECTOR BACK RIGHT
+    {
+        offset: [.9, 1.15, -.9],
+        isFront: true, isBack: true, isTop: false, isBottom: false, isLeft: true, isRight: true,
+        w: .1, h: .4, t: .1,
+    },
+
+    // TOP CONNECTOR FRONT GOR
+    {
+        offset: [.9, .2, 1.15],
+        isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
+        w: .1, h: .1, t: .4,
+    },
+        
+    // TOP CONNECTOR FRONT GOR LEFT
+    {
+        offset: [-1.15, .2, .9],
+        isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
+        w: .4, h: .1, t: .1,
+    },
+
+
     /// FRONT SIDE
+    
 
     // CORNER LEFT TOP
     {
         offset: [-.9, .9, .9],
-        isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: true, isRight: false,
-        w: .1, h: .2, t: .1,
+        isFront: true, isBack: false, isTop: false, isBottom: false, isLeft: true, isRight: false,
+        w: .1, h: .1, t: .1,
     },
 
     // CORNER RIGHT TOP
     {
         offset: [.9, .9, .9],
         isFront: true, isBack: false, isTop: true, isBottom: false, isLeft: false, isRight: true,
-        w: .1, h: .2, t: .1,
+        w: .1, h: .1, t: .1,
     },
 
     // CORNER LEFT BOTTOM
@@ -35,7 +78,7 @@ const dataElements = [
     {
         offset: [0, .9, .9],
         isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
-        w: 1.7, h: .2, t: .1,
+        w: 1.7, h: .1, t: .1,
     },
     // BOTTOM
     {
@@ -63,14 +106,14 @@ const dataElements = [
     {
         offset: [-.9, .9, -.9],
         isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: true, isRight: false,
-        w: .1, h: .2, t: .1,
+        w: .1, h: .1, t: .1,
     },
 
     // CORNER RIGHT TOP
     {
         offset: [.9, .9, -.9],
         isFront: false, isBack: true, isTop: true, isBottom: false, isLeft: false, isRight: true,
-        w: .1, h: .2, t: .1,
+        w: .1, h: .1, t: .1,
     },
 
     // CORNER LEFT BOTTOM
@@ -91,7 +134,7 @@ const dataElements = [
     {
         offset: [0, .9, -.9],
         isFront: true, isBack: true, isTop: true, isBottom: true, isLeft: false, isRight: false,
-        w: 1.7, h: .2, t: .1,
+        w: 1.7, h: .1, t: .1,
     },
     // BOTTOM
     {
@@ -118,13 +161,13 @@ const dataElements = [
     {
         offset: [-.9, .9, 0],
         isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
-        w: .1, h: .2, t: 1.7,
+        w: .1, h: .1, t: 1.7,
     },
     // RIGHT TOP
     {
         offset: [.9, .9, 0],
         isFront: false, isBack: false, isTop: true, isBottom: true, isLeft: true, isRight: true,
-        w: .1, h: .2, t: 1.7,
+        w: .1, h: .1, t: 1.7,
     },
     // LEFT BOTTOM
     {
