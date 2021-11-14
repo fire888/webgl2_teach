@@ -71,7 +71,6 @@ export const createPoints = () => ({
     normals: new Float32Array(arrPosesNormals),
 })
 
-console.log(arrPoses)
 
 
 
