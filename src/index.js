@@ -41,4 +41,6 @@
 //import './lessons/lesson12_lathe/'
 
 
-import './lessons/lesson20_texture_01/'
+import './play/shaderPlay_00_easy/' // dynamic geometry in progress
+
+
