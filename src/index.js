@@ -43,6 +43,7 @@
 //import './lessons/lesson20_texture_01/'// dynamic geometry in progress
 //import './play/shaderPlay_00_easy/' 
 
-import './play/shaderPlay_01_noise/'
+//import './play/shaderPlay_01_noise/'
+import './play/shaderPlay_02_noiseMy/'
 
 

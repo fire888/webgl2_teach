@@ -197,18 +197,18 @@ void main()
     
     vec3 col = vec3(0.0);
     
-    if (fract(u_time / 250.) < 0.1)
+    if (mod(u_time, 10.) < 3.33)
     {
         col.r = fbm(uv.x + u_time, 2);
     }
-    else if (fract(u_time / 250.) < 0.9)
+    else if (mod(u_time, 10.) < 6.66)
     {
         col.g = fbm(uv + u_time, 2);
     }
-    //else
-    //{
-    //    col.b = fbm(vec3(uv, u_time), 2) * 2.;
-    //}
+    else if (mod(u_time, 10.) < 10.)
+    {
+        col.b = fbm(vec3(uv, u_time), 2) * 2.;
+    }
 
     outColor = vec4(col, 1.0);
 }

@@ -1,7 +1,7 @@
 /** https://webglfundamentals.org/webgl/lessons/ru/webgl-3d-lighting-point.html */
 
 import { easyShaderF, easyShaderV } from './shaders'
-import { prepareGL } from './glUtils'
+import { prepareGL } from '../glUtils'
 
 
 
