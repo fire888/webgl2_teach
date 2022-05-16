@@ -44,6 +44,8 @@
 //import './play/shaderPlay_00_easy/' 
 
 //import './play/shaderPlay_01_noise/'
-import './play/shaderPlay_02_noiseMy/'
+//import './play/shaderPlay_02_noiseMy/'
+
+import './lessons/lesson20_texture_02/'// dynamic geometry in progress
 
 

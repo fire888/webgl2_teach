@@ -7,6 +7,9 @@ const createGeometry = () => {
 
     return {
         add4Points: (data) => {
+            console.log(data)
+
+
             if (data.length !== 4) {
                 console.log('add4Points data mistake', data)
             }
@@ -151,43 +154,8 @@ for (let j = 0; j < quality - 1; j++) {
 
         }
 
-     // arrPoses.push(
-     //     xInner, yInner,  zInner,
-     //     xOuter, yOuter,  zOuter,
-     // )
-
-
-
-
-
-
     }
 }
-
-
-//
-// for (let i = 0; i < nums; i++) {
-//     const d = (i / nums) * PI2
-//     const  xInner = sin(d) * offset1
-//     const  yInner = cos(d) * offset1
-//     const  xOuter = sin(d) * (offset1 + offset2)
-//     const  yOuter = cos(d) * (offset1 + offset2)
-//
-//     const zInner = R * (cos(xInner / R) + cos(yInner / R)) / 2
-//     const zOuter = R * (cos(xOuter / R) + cos(yOuter / R)) / 2
-//
-//
-//     arrPoses.push(
-//         xInner, yInner,  zInner,
-//         xOuter, yOuter,  zOuter,
-//     )
-// }
-
-
-
-
-
-
 
 
 
@@ -214,12 +182,3 @@ export const createPoints = () => {
         texture: new Uint8Array(createTexture())
     }
 }
-
-
-
-
-
-
-
-
-
