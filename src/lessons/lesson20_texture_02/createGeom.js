@@ -146,12 +146,16 @@ for (let i = 0; i < count; ++i) {
 const createTexture = () => {
     const arr = [
         128, 0, 0,    128, 0, 0,   128, 0, 0,  
-        70, 0, 0,    70, 0, 0,   70, 0, 0,   
-        0, 50, 128,    0, 50, 128,     0, 50, 128,   
-        70, 0, 0,    70, 0, 0,   70, 0, 0,   
+        70, 0, 0,     70, 0, 0,    70, 0, 0,   
+        0, 50, 128,   0, 50, 128,  0, 50, 128,   
+        70, 0, 0,     70, 0, 0,    70, 0, 0,   
         128, 0, 0,    128, 0, 0,   128, 0, 0,   
     ]
-    return arr
+    return { 
+        arr: new Uint8Array(arr), 
+        w: 3, 
+        h: 5,
+    }
 }
 
 
@@ -165,6 +169,6 @@ export const createPoints = () => {
         points,
         texCoords: uv,
         normals,
-        texture: new Uint8Array(createTexture())
+        textureData: createTexture()
     }
 }
