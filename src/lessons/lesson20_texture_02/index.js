@@ -9,7 +9,6 @@ import { m4 } from "./m4";
 
 
 const { points, normals, texCoords, texture,  } = createPoints()
-console.log(texture)
 
 
 const attributes = {
@@ -84,7 +83,7 @@ function main() {
         Object.assign(uniforms[key], { location })
     }
 
-    uGl.createTextureByData({ arrTexture: texture, width: 3, height: 3 })
+    uGl.createTextureByData({ arrTexture: texture, width: 3, height: 5 })
 
     // image.addEventListener('load', () => {
     //     uGl.createTextureBufferByImage({ image })

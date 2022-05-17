@@ -46,8 +46,8 @@ void main() {
 
     float light = dot(normal, surfaceToLightDirection);
     float specular = 0.0;
-    if (light > 0.5) {
-        specular = pow(dot(normal, halfVector), 200.);
+    if (light > 0.95) {
+        specular = pow(dot(normal, halfVector), 10.);
     }
  
     

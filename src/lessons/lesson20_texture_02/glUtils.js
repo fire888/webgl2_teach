@@ -87,8 +87,6 @@ export function prepareGL() {
 
         const { arrTexture, width, height } = data
 
-        console.log(arrTexture)
-
         const level = 0
         const internalFormat = gl.RGB
         const border = 0

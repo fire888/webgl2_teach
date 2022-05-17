@@ -45,7 +45,7 @@ const createGeometry = () => {
                 console.log('add3Points data mistake', data)
             }
 
-            console.log(data)
+            //console.log(data)
 
             points.push(
                 data[0][0], data[0][1], data[0][2],
@@ -54,17 +54,22 @@ const createGeometry = () => {
             )
             uv.push(
                 0, 0,
-                1, 0,
                 .5, 1,
+                1, 0,
             )
+
+            const x = Math.min((data[0][0] + data[1][0] + data[2][0]) / 3, 1)     
+            const y = Math.min((data[0][1] + data[1][1] + data[2][1]) / 3, 1) 
+            const z = Math.min((data[0][2] + data[1][2] + data[2][2]) / 3, 1) 
+
             normals.push(
-                0, 0, 1,
-                0, 0, 1,
-                0, 0, 1,
+                x, y, z,
+                x, y, z,
+                x, y, z,
             )
         },
         getCompletedGeometry: () => {
-            console.log(points)
+            //console.log(points)
             return {
                 points: new Float32Array(points),
                 uv: new Float32Array(uv),
@@ -89,7 +94,7 @@ const h0 = -4
 const h1 = -1
 const h2 = 1
 const h3 = 4
-const count = 6
+const count = 9
 const R = 2.5
 
 const bottomRound = (() => {
@@ -109,7 +114,7 @@ const topRound = (() => {
     return arr
 })()
 
-console.log(bottomRound, topRound)
+//console.log(bottomRound, topRound)
 
 
 
@@ -140,10 +145,11 @@ for (let i = 0; i < count; ++i) {
 
 const createTexture = () => {
     const arr = [
-        0, 0, 0,    128, 0, 0,   128, 0, 0,  
-        128, 0, 0,    0, 0, 0,   128, 0, 0,   
-        0, 0, 0,    0, 0, 0,   128, 0, 0,  
-
+        128, 0, 0,    128, 0, 0,   128, 0, 0,  
+        70, 0, 0,    70, 0, 0,   70, 0, 0,   
+        0, 50, 128,    0, 50, 128,     0, 50, 128,   
+        70, 0, 0,    70, 0, 0,   70, 0, 0,   
+        128, 0, 0,    128, 0, 0,   128, 0, 0,   
     ]
     return arr
 }
