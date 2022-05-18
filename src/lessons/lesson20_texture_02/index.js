@@ -2,13 +2,15 @@
 
 import { easyShaderF, easyShaderV } from './shaders'
 import { prepareGL } from './glUtils'
-import { createPoints } from './createGeom'
-import { m4 } from "./m4";
+import { createGeometry } from './createGeom'
+import { createTexture } from './createTexture'
+import { m4 } from './m4'
 
 
 
+let geomQuality = 0
+const { a_position, a_texcoord, a_normal, } = createGeometry(0)
 
-const { points, normals, texCoords, textureData,  } = createPoints()
 
 
 const attributes = {
@@ -18,7 +20,7 @@ const attributes = {
         location: null,
         size: 3,
         type: 'FLOAT',
-        dataForBuffer: points,
+        dataForBuffer: a_position,
         buffer: null,
     },
     'a_texcoord': {
@@ -27,7 +29,7 @@ const attributes = {
         location: null,
         size: 2,
         type: 'FLOAT',
-        dataForBuffer: texCoords,
+        dataForBuffer: a_texcoord,
         buffer: null,
     },
     'a_normal': {
@@ -36,7 +38,7 @@ const attributes = {
         location: null,
         size: 3,
         type: 'FLOAT',
-        dataForBuffer: normals,
+        dataForBuffer: a_normal,
         buffer: null,
     },
 }
@@ -73,8 +75,8 @@ function main() {
     uGl.prepareProgram(easyShaderV, easyShaderF)
 
     for (let key in attributes) {
-        const { location, buffer, bufferLength } = uGl.createBufferByData(attributes[key])
-        Object.assign(attributes[key], { location, buffer, bufferLength })
+        const { location, buffer } = uGl.createBufferByData(attributes[key])
+        Object.assign(attributes[key], { location, buffer  })
     }
     uGl.setAttributes(attributes)
 
@@ -83,20 +85,12 @@ function main() {
         Object.assign(uniforms[key], { location })
     }
 
+    const textureData = createTexture()
     uGl.createTextureByData({ 
         arrTexture: textureData.arr, 
         width: textureData.w, 
         height: textureData.h,  
     })
-
-    // image.addEventListener('load', () => {
-    //     uGl.createTextureBufferByImage({ image })
-    // })
-
-
-
-
-
 
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
@@ -109,7 +103,28 @@ function main() {
     const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
 
+    let countFrame = 0
     const update = d => {
+        ++countFrame
+        if (countFrame > 100) {
+            countFrame = 0
+
+            geomQuality += 1
+            const geomData = createGeometry(geomQuality)
+
+            for (let key in attributes) {
+                const { bufferLength } = uGl.fillBufferByData({
+                    buffer: attributes[key].buffer,
+                    dataForBuffer: geomData[key],
+                    size: attributes[key].size
+                })
+                Object.assign(attributes[key], { bufferLength })
+            }
+            uGl.setAttributes(attributes)
+        }
+
+
+
         const dark = 0.1
         uGl.prepareRender([dark, dark, dark])
 
