@@ -94,7 +94,7 @@ function main() {
 
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
-    const camera = [0, 0, 5];
+    const camera = [0, 0, 10];
     uniforms['u_viewWorldPosition'].val = camera
     const target = [0, 0, 0];
     const up = [0, 1, 0];
@@ -103,34 +103,51 @@ function main() {
     const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
 
+    const updateAttribures = (quality, phase) => {
+        const geomData = createGeometry(quality, phase)
+
+        for (let key in attributes) {
+            const { bufferLength } = uGl.fillBufferByData({
+                buffer: attributes[key].buffer,
+                dataForBuffer: geomData[key],
+                size: attributes[key].size
+            })
+            Object.assign(attributes[key], { bufferLength })
+        }
+    }
+
+
+
     let countFrame = 0
+    let speedAddGeomQuality = 5
+
     const update = d => {
         ++countFrame
-        if (countFrame > 100) {
-            countFrame = 0
+        if (countFrame > 0) {
+            countFrame = 30
 
-            geomQuality += 1
-            const geomData = createGeometry(geomQuality)
-
-            for (let key in attributes) {
-                const { bufferLength } = uGl.fillBufferByData({
-                    buffer: attributes[key].buffer,
-                    dataForBuffer: geomData[key],
-                    size: attributes[key].size
-                })
-                Object.assign(attributes[key], { bufferLength })
+            geomQuality += speedAddGeomQuality
+            if (geomQuality > 70) {
+                speedAddGeomQuality = -1
             }
-            uGl.setAttributes(attributes)
+            if (geomQuality < 20) {
+                speedAddGeomQuality = 1
+            }
+
+
         }
 
-
+        updateAttribures(geomQuality, Math.sin(d / 2))
+        //updateAttribures(30, Math.sin(d / 2))
+        uGl.setAttributes(attributes)
 
         const dark = 0.1
         uGl.prepareRender([dark, dark, dark])
 
         const worldYRot = m4.yRotation(d / 15)
-        const worldXRot = m4.xRotation(d / 40)
+        const worldXRot = m4.xRotation(d / 30)
         uniforms['u_worldViewProjection'].val = m4.multiply(m4.multiply(viewProjectionMatrix, worldYRot), worldXRot)
+        //uniforms['u_worldViewProjection'].val = m4.multiply(viewProjectionMatrix, worldYRot)
 
         uGl.setUniforms(uniforms)
         uGl.render()

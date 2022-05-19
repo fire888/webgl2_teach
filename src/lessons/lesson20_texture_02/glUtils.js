@@ -60,18 +60,14 @@ export function prepareGL() {
         const { name, dataForBuffer, size } = data
         const location = gl.getAttribLocation(program, name)
         const buffer = gl.createBuffer()
-        //gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-        //gl.bufferData(gl.ARRAY_BUFFER, dataForBuffer, gl.STATIC_DRAW)
         return {
             location,
             buffer,
-            //bufferLength: dataForBuffer.length / size,
         }
     }
 
     function fillBufferByData(data) {
         const { buffer, dataForBuffer, size } = data
-        console.log(buffer)
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
         gl.bufferData(gl.ARRAY_BUFFER, dataForBuffer, gl.STATIC_DRAW)
 
@@ -134,7 +130,6 @@ export function prepareGL() {
 
 
     function setAttributes (attributes) {
-        console.log(attributes)
         for (let key in attributes) {
             const { buffer, bufferLength, location, size, type } = attributes[key]
             gl.enableVertexAttribArray(location)

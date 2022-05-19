@@ -87,25 +87,32 @@ const geometryHub = createGeometryHub()
 const { PI, sin, cos } = Math
 const PI2 = PI * 2
 
-const h0 = -4
-const h1 = -1
-const h2 = 1
-const h3 = 4
+const h0 = -5
+const h1 = -3
+const h2 = 3
+const h3 = 5
 let count = 9
 const R = 2.5
 
 
 
 
-export const createGeometry = resolution => {
+export const createGeometry = (resolution, phase) => {
     geometryHub.clear()
 
     count = resolution
 
+    const h0r = h0 - sin(phase)
+    const h3r = h3 + cos(phase)
+
     const bottomRound = (() => {
         const arr = []
         for (let i = 0; i < count; ++i) {
-            arr.push([sin(PI2 * (i / count)) * R, h1, cos(PI2 * (i / count)) * R])
+            arr.push([
+                sin(PI2 * (i / count)) * R, 
+                h1 + cos(i / count * PI2 * 2) * phase * 2, 
+                cos(PI2 * (i / count)) * R
+            ])
         }
         return arr
     })()
@@ -114,7 +121,11 @@ export const createGeometry = resolution => {
         const arr = []
         const offset = PI2 / count / 2
         for (let i = 0; i < count; ++i) {
-            arr.push([sin(PI2 * (i / count) + offset) * R, h2, cos(PI2 * (i / count) + offset) * R])
+            arr.push([
+                sin(PI2 * (i / count) + offset) * R, 
+                h2  + sin(i / count * PI2 * 2) * phase * 2, 
+                cos(PI2 * (i / count) + offset) * R
+            ])
         }
         return arr
     })()
@@ -122,22 +133,20 @@ export const createGeometry = resolution => {
 
     for (let i = 0; i < count; ++i) {
         if (i < count - 1) {
-            geometryHub.add3Points([ bottomRound[i], [0, h0, 0], bottomRound[i + 1] ])
+            geometryHub.add3Points([ bottomRound[i], [0, h0r, 0], bottomRound[i + 1] ])
             geometryHub.add3Points([ bottomRound[i + 1], topRound[i], bottomRound[i] ])
             geometryHub.add3Points([ topRound[i], bottomRound[i + 1], topRound[i + 1] ])
-            geometryHub.add3Points([ topRound[i + 1], [0, h3, 0], topRound[i] ])
+            geometryHub.add3Points([ topRound[i + 1], [0, h3r, 0], topRound[i] ])
         }
         if (i === count - 1) {
-            geometryHub.add3Points([ bottomRound[i], [0, h0, 0], bottomRound[0] ])
+            geometryHub.add3Points([ bottomRound[i], [0, h0r, 0], bottomRound[0] ])
             geometryHub.add3Points([ bottomRound[0], topRound[i], bottomRound[i] ])
             geometryHub.add3Points([ topRound[i], bottomRound[0], topRound[0] ])
-            geometryHub.add3Points([ topRound[0], [0, h3, 0], topRound[i] ])
+            geometryHub.add3Points([ topRound[0], [0, h3r, 0], topRound[i] ])
         }
     }
 
     const { points, uv, normals } = geometryHub.getCompletedGeometry()
-
-    console.log(points.length)
 
     return {
         a_position: points,
