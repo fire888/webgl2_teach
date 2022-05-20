@@ -69,8 +69,7 @@ const uniforms = {
 
 
 
-
-function main() {
+const main = () => {
     const uGl = prepareGL()
     uGl.prepareProgram(easyShaderV, easyShaderF)
 
@@ -103,7 +102,7 @@ function main() {
     const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
 
-    const updateAttribures = (quality, phase) => {
+    const updateAttributes = (quality, phase) => {
         const geomData = createGeometry(quality, phase)
 
         for (let key in attributes) {
@@ -117,11 +116,12 @@ function main() {
     }
 
 
+    /** render *****************************************/
 
     let countFrame = 0
     let speedAddGeomQuality = 5
 
-    const update = d => {
+    const updateParams = () => {
         ++countFrame
         if (countFrame > 0) {
             countFrame = 30
@@ -133,12 +133,12 @@ function main() {
             if (geomQuality < 20) {
                 speedAddGeomQuality = 1
             }
-
-
         }
+    }
 
-        updateAttribures(geomQuality, Math.sin(d / 2))
-        //updateAttribures(30, Math.sin(d / 2))
+    const update = d => {
+        updateParams()
+        updateAttributes(geomQuality, Math.sin(d / 2))
         uGl.setAttributes(attributes)
 
         const dark = 0.1
@@ -147,11 +147,13 @@ function main() {
         const worldYRot = m4.yRotation(d / 15)
         const worldXRot = m4.xRotation(d / 30)
         uniforms['u_worldViewProjection'].val = m4.multiply(m4.multiply(viewProjectionMatrix, worldYRot), worldXRot)
-        //uniforms['u_worldViewProjection'].val = m4.multiply(viewProjectionMatrix, worldYRot)
 
         uGl.setUniforms(uniforms)
         uGl.render()
     }
+
+
+    /** update *****************************************/
 
     let d = 0
     const animate = () => {
@@ -160,11 +162,6 @@ function main() {
         requestAnimationFrame(animate)
     }
     animate()
-
 }
 
-
-
 main()
-
-
