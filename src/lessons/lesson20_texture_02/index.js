@@ -118,26 +118,20 @@ const main = () => {
 
     /** render *****************************************/
 
-    let countFrame = 0
     let speedAddGeomQuality = 5
 
-    const updateParams = () => {
-        ++countFrame
-        if (countFrame > 0) {
-            countFrame = 30
-
-            geomQuality += speedAddGeomQuality
-            if (geomQuality > 70) {
-                speedAddGeomQuality = -1
-            }
-            if (geomQuality < 20) {
-                speedAddGeomQuality = 1
-            }
+    const updateStaticVars = () => {
+        geomQuality += speedAddGeomQuality
+        if (geomQuality > 70) {
+            speedAddGeomQuality = -1
+        }
+        if (geomQuality < 20) {
+            speedAddGeomQuality = 1
         }
     }
 
     const update = d => {
-        updateParams()
+        updateStaticVars()
         updateAttributes(geomQuality, Math.sin(d / 2))
         uGl.setAttributes(attributes)
 
