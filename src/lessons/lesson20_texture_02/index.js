@@ -93,7 +93,7 @@ const main = () => {
 
 
     const projectionMatrix = m4.perspective(1.8, 1, .01, 50)
-    const camera = [0, 0, 10];
+    const camera = [0, 0, 15];
     uniforms['u_viewWorldPosition'].val = camera
     const target = [0, 0, 0];
     const up = [0, 1, 0];
@@ -103,7 +103,7 @@ const main = () => {
 
 
     const updateAttributes = (quality, phase) => {
-        const geomData = createGeometry(quality, phase)
+        const geomData = createGeometry(5, phase / 5)
 
         for (let key in attributes) {
             const { bufferLength } = uGl.fillBufferByData({
@@ -132,7 +132,7 @@ const main = () => {
 
     const update = d => {
         updateStaticVars()
-        updateAttributes(geomQuality, Math.sin(d / 2))
+        updateAttributes(geomQuality, Math.sin(d / 5))
         uGl.setAttributes(attributes)
 
         const dark = 0.1

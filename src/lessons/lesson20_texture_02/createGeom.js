@@ -87,10 +87,17 @@ const geometryHub = createGeometryHub()
 const { PI, sin, cos } = Math
 const PI2 = PI * 2
 
-const h0 = -5
-const h1 = -3
-const h2 = 3
-const h3 = 5
+const hOffset = 1.5
+const hOffset1 = 1
+const hOffset2 = 1
+
+const h0 = -hOffset2 - hOffset
+const h1 = -hOffset
+const h2 = hOffset
+const h3 = hOffset + hOffset2
+
+
+
 let count = 9
 const R = 2.5
 
@@ -110,7 +117,7 @@ export const createGeometry = (resolution, phase) => {
         for (let i = 0; i < count; ++i) {
             arr.push([
                 sin(PI2 * (i / count)) * R, 
-                h1 + cos(i / count * PI2 * 2) * phase * 2, 
+                h1 + cos(i / count * PI2 * 2) * phase,
                 cos(PI2 * (i / count)) * R
             ])
         }
@@ -123,7 +130,7 @@ export const createGeometry = (resolution, phase) => {
         for (let i = 0; i < count; ++i) {
             arr.push([
                 sin(PI2 * (i / count) + offset) * R, 
-                h2  + sin(i / count * PI2 * 2) * phase * 2, 
+                h2  + sin(i / count * PI2 * 2) * phase,
                 cos(PI2 * (i / count) + offset) * R
             ])
         }
