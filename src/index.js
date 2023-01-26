@@ -49,7 +49,8 @@
 //import './lessons/lesson20_texture_02/'// dynamic geometry in progress
 
 /** PAUL WEST **/
-import './notMyTests/paulWest_00'
+//import './notMyTests/paulWest_00'
+import './notMyTests/pW_00/ind'
 
 
 
