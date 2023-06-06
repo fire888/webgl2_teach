@@ -50,7 +50,11 @@
 
 /** PAUL WEST **/
 //import './notMyTests/paulWest_00'
-import './notMyTests/pW_00/ind'
+//import './notMyTests/pW_00/ind'
+
+
+/** Math tests **/
+import './teachMath/01'
 
 
 
